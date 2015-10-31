@@ -8,6 +8,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.lang import Builder
 from kivy.config import Config
 from kivy.core.window import Window
+from kivy.clock import Clock
 
 #other imports
 import time
@@ -15,6 +16,7 @@ import requests
 import json
 import ConfigParser
 from subprocess import *
+import pprint
 
 
 
@@ -30,6 +32,8 @@ jobapiurl = 'http://' + host + '/api/job'
 headers = {'X-Api-Key': apikey, 'content-type': 'application/json'}
 print headers
 
+bed_temp_val = 0.0
+hotend_temp_val = 0.0
 
 start_time = time.time()
 
@@ -40,6 +44,7 @@ Builder.load_string("""
     do_default_tab: False
     #Tab1
     TabbedPanelItem:
+        id: tab1
         text: 'Status'
         BoxLayout:
             GridLayout:
@@ -95,13 +100,32 @@ Builder.load_string("""
 
 
 class Panels(TabbedPanel):
-    pass
-
+    def gettemps(self, *args):
+        print dir(self.ids)
+        print self.ids.bed_temp.text
+        global bed_temp_val
+        global hotend_temp_val
+        bed_temp_val = bed_temp_val + 1 
+        hotend_temp_val = hotend_temp_val + 1.7
+        print bed_temp_val
+        print hotend_temp_val
+        self.ids.bed_temp.text = str(bed_temp_val)
+        self.ids.hotend_temp.text = str(hotend_temp_val)
+        #bed_temp = self.ids.bed_temp
+        #hotend_temp = self.ids.hotend_temp
+        #bed_temp.text = str(bed_temp_val)
+        #hotend_temp.text = str(hotend_temp_val)
+    #Clock.schedule_interval(gettemps, 5)
+    #pass
 
 class TabbedPanelApp(App):
     def build(self):
         Window.size = (800, 480)
-        return Panels()
+        panels = Panels()
+        Clock.schedule_interval(panels.gettemps, 5)
+        #return Panels()
+        return panels
+
 
 if __name__ == '__main__':
     TabbedPanelApp().run()
