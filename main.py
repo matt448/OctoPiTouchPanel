@@ -48,9 +48,56 @@ Builder.load_string("""
         text: 'Status'
         BoxLayout:
             orientation: 'horizontal'
-            Label:
-                text: 'Stats Area'
+            ######################
+            # Left Stats Area
+            ######################
             BoxLayout:
+                size_hint: (.4, 1)
+                orientation: 'vertical'
+                Image:
+                    source: 'logo.png'
+                    size_hint_y: None
+                    height: 108
+                GridLayout:
+                    cols: 2
+                    Label:
+                        text: 'IP Address:'
+                    Label:
+                        size_hint_x: 1.75
+                        id: ipaddr
+                        text: '192.168.x.x'
+                    Label:
+                        text: 'Machine State:'
+                    Label:
+                        id: machinestate
+                        text: 'Unknown'
+                    Label:
+                        text: 'File:'
+                    Label:
+                        text: 'somefilename.gcode'
+                    Label:
+                        text: 'Time Elapsed:'
+                    Label:
+                        text: '00:00:00'
+                    Label:
+                        text: 'Est. Time Left:'
+                    Label:
+                        text: '00:00:00'
+                    Label:
+                        text: 'Printed: '
+                    Label:
+                        text: '73%'
+                ProgressBar:
+                    id: pb
+                    size_hint_x: .97
+                    size_hint_y: None
+                    height: '15dp'
+                    value: 73
+            ######################
+            # Right Stats Area
+            ######################
+            BoxLayout:
+                size_hint: (.6, 1)
                 orientation: 'vertical'
                 GridLayout:
                     cols: 3
@@ -120,8 +167,9 @@ Builder.load_string("""
                 Button:
                     size_hint: (1, .75)
                     text: 'Graph Area'
-            
-    #Tab2
+    ##############        
+    # Tab2
+    ##############
     TabbedPanelItem:
         text: 'Control'
         FloatLayout:
@@ -144,8 +192,11 @@ Builder.load_string("""
                 height: '64dp'
                 value: 73
 
-    #Tab3
+    ##############        
+    # Tab3
+    ##############        
     TabbedPanelItem:
+        ##NOTE: http://kivy.org/docs/examples/gen__camera__main__py.html
         text: 'Settings'
         RstDocument:
             text:
@@ -176,9 +227,13 @@ class Panels(TabbedPanel):
                 self.ids.hotend_target.text = str(hotendtarget) + u"\u00b0" + ' C'
             else:
                 self.ids.hotend_target.text = 'OFF'
-
         else:
             print 'Error. Status Code: ' + r.status_code
+
+        def updateipaddr(self, *args):
+            cmd = "ip addr show eth0 | grep inet | awk '{print $2}' | cut -d/ -f1"
+            p = Popen(cmd, shell=True, stdout=PIPE)
+            output = p.communicate()[0]
 
 class TabbedPanelApp(App):
     def build(self):
