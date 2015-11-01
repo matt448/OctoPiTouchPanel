@@ -9,9 +9,12 @@ from kivy.lang import Builder
 from kivy.config import Config
 from kivy.core.window import Window
 from kivy.clock import Clock
+from kivy.utils import get_color_from_hex as rgb
+from kivy.garden.graph import Graph, MeshLinePlot, SmoothLinePlot
 
 #other imports
 import time
+from math import sin, cos
 import requests
 import json
 import ConfigParser
@@ -168,9 +171,27 @@ Builder.load_string("""
                         halign: 'center'
                         valign: 'middle'
                         text: 'N/A' + u"\u00b0" + ' C'
-                Button:
-                    size_hint: (1, .75)
-                    text: 'Graph Area'
+                Graph:
+                    xlabel: 'Time'
+                    ylabel: 'Temp'
+                    x_ticks_minor: 5
+                    x_ticks_major: 5
+                    y_ticks_major: 50
+                    y_grid_label: True
+                    x_grid_label: True
+                    padding: 5
+                    xlog: False
+                    ylog: False
+                    x_grid: True
+                    y_grid: True
+                    xmin: -30
+                    xmax: 0
+                    ymin: 0
+                    ymax: 300
+                    #**graph_theme
+                #Button:
+                    #size_hint: (1, .75)
+                    #text: 'Graph Area'
     ##############        
     # Tab2
     ##############
