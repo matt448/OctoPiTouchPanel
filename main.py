@@ -47,30 +47,79 @@ Builder.load_string("""
         id: tab1
         text: 'Status'
         BoxLayout:
-            GridLayout:
-                cols: 2
-                Label:
-                    font_size: 30
-                    bold: True
-                    halign: 'right'
-                    text: 'Hot End:'
-                Label:
-                    id: hotend_temp
-                    font_size: 30
-                    bold: True
-                    text: 'N/A' + u"\u00b0" + ' C'
-                Label:
-                    font_size: 30
-                    bold: True
-                    halign: 'right'
-                    text: 'Bed:'
-                Label:
-                    id: bed_temp
-                    font_size: 30
-                    bold: True
-                    text: 'N/A' + u"\u00b0" + ' C'
+            orientation: 'horizontal'
             Label:
-                text: 'Graph Area'
+                text: 'Stats Area'
+            BoxLayout:
+                orientation: 'vertical'
+                GridLayout:
+                    cols: 3
+                    size_hint: (1, .25)
+                    Label:
+                        text: ' '
+                        size_hint_y: None
+                        height: 20
+                    Label:
+                        text_size: self.size
+                        halign: 'center'
+                        valign: 'middle'
+                        text: 'Actual'
+                    Label:
+                        text_size: self.size
+                        halign: 'center'
+                        valign: 'middle'
+                        text: 'Target'
+                    Label:
+                        size_hint_y: None
+                        height: 40
+                        text_size: self.size
+                        bold: True
+                        halign: 'right'
+                        valign: 'middle'
+                        text: 'Hot End:'
+                    Label:
+                        id: hotend_actual
+                        text_size: self.size
+                        font_size: 30
+                        bold: True
+                        halign: 'center'
+                        valign: 'middle'
+                        text: 'N/A' + u"\u00b0" + ' C'
+                    Label:
+                        id: hotend_target
+                        text_size: self.size
+                        font_size: 30
+                        bold: True
+                        halign: 'center'
+                        valign: 'middle'
+                        text: 'N/A' + u"\u00b0" + ' C'
+                    Label:
+                        size_hint_y: None
+                        height: 40
+                        bold: True
+                        text_size: self.size
+                        halign: 'right'
+                        valign: 'middle'
+                        text: 'Bed:'
+                    Label:
+                        id: bed_actual
+                        text_size: self.size
+                        font_size: 30
+                        bold: True
+                        halign: 'center'
+                        valign: 'middle'
+                        text: 'N/A' + u"\u00b0" + ' C'
+                    Label:
+                        id: bed_target
+                        text_size: self.size
+                        font_size: 30
+                        bold: True
+                        halign: 'center'
+                        valign: 'middle'
+                        text: 'N/A' + u"\u00b0" + ' C'
+                Button:
+                    size_hint: (1, .75)
+                    text: 'Graph Area'
             
     #Tab2
     TabbedPanelItem:
@@ -117,8 +166,17 @@ class Panels(TabbedPanel):
             bedtarget = r.json()['temperature']['bed']['target']
             print bedactual
             print hotendactual
-            self.ids.bed_temp.text = str(bedactual) + u"\u00b0" + ' C'
-            self.ids.hotend_temp.text = str(hotendactual)  + u"\u00b0" + ' C'
+            self.ids.bed_actual.text = str(bedactual) + u"\u00b0" + ' C'
+            self.ids.hotend_actual.text = str(hotendactual)  + u"\u00b0" + ' C'
+            if bedtarget > 0:
+                self.ids.bed_target.text = str(bedtarget) + u"\u00b0" + ' C'
+            else:
+                self.ids.bed_target.text = 'OFF'
+            if hotendtarget > 0:
+                self.ids.hotend_target.text = str(hotendtarget) + u"\u00b0" + ' C'
+            else:
+                self.ids.hotend_target.text = 'OFF'
+
         else:
             print 'Error. Status Code: ' + r.status_code
 
