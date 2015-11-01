@@ -50,19 +50,25 @@ Builder.load_string("""
             GridLayout:
                 cols: 2
                 Label:
-                    font_size: 24
-                    text: 'Hot End Temp'
+                    font_size: 30
+                    bold: True
+                    halign: 'right'
+                    text: 'Hot End:'
                 Label:
                     id: hotend_temp
-                    font_size: 24
-                    text: '0.0'
+                    font_size: 30
+                    bold: True
+                    text: 'N/A' + u"\u00b0" + ' C'
                 Label:
-                    font_size: 24
-                    text: 'Bed Temp'
+                    font_size: 30
+                    bold: True
+                    halign: 'right'
+                    text: 'Bed:'
                 Label:
                     id: bed_temp
-                    font_size: 24
-                    text: '0.1'
+                    font_size: 30
+                    bold: True
+                    text: 'N/A' + u"\u00b0" + ' C'
             Label:
                 text: 'Graph Area'
             
@@ -101,22 +107,20 @@ Builder.load_string("""
 
 class Panels(TabbedPanel):
     def gettemps(self, *args):
-        print dir(self.ids)
-        print self.ids.bed_temp.text
-        global bed_temp_val
-        global hotend_temp_val
-        bed_temp_val = bed_temp_val + 1 
-        hotend_temp_val = hotend_temp_val + 1.7
-        print bed_temp_val
-        print hotend_temp_val
-        self.ids.bed_temp.text = str(bed_temp_val)
-        self.ids.hotend_temp.text = str(hotend_temp_val)
-        #bed_temp = self.ids.bed_temp
-        #hotend_temp = self.ids.hotend_temp
-        #bed_temp.text = str(bed_temp_val)
-        #hotend_temp.text = str(hotend_temp_val)
-    #Clock.schedule_interval(gettemps, 5)
-    #pass
+        r = requests.get(printerapiurl, headers=headers)
+        if r.status_code == 200:
+            printeronline = True 
+            hotendactual = r.json()['temperature']['tool0']['actual']
+            hotendtarget = r.json()['temperature']['tool0']['target']
+            hotmsg = ('Hotend:') + str(hotendactual) + chr(223) + '/' + str(hotendtarget) + chr(223)
+            bedactual = r.json()['temperature']['bed']['actual']
+            bedtarget = r.json()['temperature']['bed']['target']
+            print bedactual
+            print hotendactual
+            self.ids.bed_temp.text = str(bedactual) + u"\u00b0" + ' C'
+            self.ids.hotend_temp.text = str(hotendactual)  + u"\u00b0" + ' C'
+        else:
+            print 'Error. Status Code: ' + r.status_code
 
 class TabbedPanelApp(App):
     def build(self):
