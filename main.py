@@ -15,6 +15,7 @@ import time
 import requests
 import json
 import ConfigParser
+import sys
 from subprocess import *
 import pprint
 
@@ -34,6 +35,8 @@ print headers
 
 bed_temp_val = 0.0
 hotend_temp_val = 0.0
+
+platform = sys.platform
 
 start_time = time.time()
 
@@ -63,9 +66,9 @@ Builder.load_string("""
                     Label:
                         text: 'IP Address:'
                     Label:
-                        size_hint_x: 1.75
                         id: ipaddr
-                        text: '192.168.x.x'
+                        size_hint_x: 1.75
+                        text: 'N/A'
                     Label:
                         text: 'Machine State:'
                     Label:
@@ -230,16 +233,23 @@ class Panels(TabbedPanel):
         else:
             print 'Error. Status Code: ' + r.status_code
 
-        def updateipaddr(self, *args):
+    def updateipaddr(self, *args):
+        global platform
+        if 'linux' in platform or 'Linux' in platform:
             cmd = "ip addr show eth0 | grep inet | awk '{print $2}' | cut -d/ -f1"
             p = Popen(cmd, shell=True, stdout=PIPE)
             output = p.communicate()[0]
+            self.ids.ipaddr.text = output
+        else:
+            self.ids.ipaddr.text = 'Unknown Platform'
 
 class TabbedPanelApp(App):
     def build(self):
         Window.size = (800, 480)
         panels = Panels()
         Clock.schedule_interval(panels.gettemps, 5)
+        Clock.schedule_once(panels.updateipaddr, 0.5)
+        Clock.schedule_interval(panels.updateipaddr, 30)
         #return Panels()
         return panels
 
