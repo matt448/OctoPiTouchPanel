@@ -26,6 +26,7 @@ import pprint
 settings = ConfigParser.ConfigParser()
 settings.read('octoprint.cfg')
 host = settings.get('APISettings', 'host')
+nicname = settings.get('APISettings', 'nicname')
 apikey = settings.get('APISettings', 'apikey')
 printerapiurl = 'http://'+ host + '/api/printer'
 printheadurl = 'http://'+ host + '/api/printer/printhead'
@@ -235,8 +236,9 @@ class Panels(TabbedPanel):
 
     def updateipaddr(self, *args):
         global platform
+        global nicname
         if 'linux' in platform or 'Linux' in platform:
-            cmd = "ip addr show eth0 | grep inet | awk '{print $2}' | cut -d/ -f1"
+            cmd = "ip addr show " + nicname + " | grep inet | awk '{print $2}' | cut -d/ -f1"
             p = Popen(cmd, shell=True, stdout=PIPE)
             output = p.communicate()[0]
             self.ids.ipaddr.text = output
@@ -247,9 +249,9 @@ class TabbedPanelApp(App):
     def build(self):
         Window.size = (800, 480)
         panels = Panels()
-        Clock.schedule_interval(panels.gettemps, 5)
-        Clock.schedule_once(panels.updateipaddr, 0.5)
-        Clock.schedule_interval(panels.updateipaddr, 30)
+        Clock.schedule_interval(panels.gettemps, 5) #Update bed and hotend temps every 5 seconds
+        Clock.schedule_once(panels.updateipaddr, 0.5) #Update IP addr once right away
+        Clock.schedule_interval(panels.updateipaddr, 30) #Then update IP every 30 seconds
         #return Panels()
         return panels
 
