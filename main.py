@@ -299,7 +299,7 @@ class Panels(TabbedPanel):
                 seconds = int(jobprinttime % 60)
                 self.ids.jobprinttime.text = str(hours).zfill(2) + ':' + str(minutes).zfill(2) + ':' + str(seconds).zfill(2)
             else:
-                self.ids.jobprinttime = '00:00:00'
+                self.ids.jobprinttime.text = '00:00:00'
             if jobprinttimeleft is not None:
                 hours = int(jobprinttimeleft/60/60)
                 if hours > 0:
@@ -309,7 +309,7 @@ class Panels(TabbedPanel):
                 seconds = int(jobprinttimeleft % 60)
                 self.ids.jobprinttimeleft.text = str(hours).zfill(2) + ':' + str(minutes).zfill(2) + ':' + str(seconds).zfill(2)
             else:
-                self.ids.jobprinttimeleft = '00:00:00'
+                self.ids.jobprinttimeleft.text = '00:00:00'
 
         else:
             if r:
