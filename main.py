@@ -279,7 +279,7 @@ class Panels(TabbedPanel):
             jobfilename = r.json()['job']['file']['name']
             jobpercent = r.json()['progress']['completion']
             jobprinttime = r.json()['progress']['printTime']
-            jobprinttimeleft = r.json()['job']['estimatedPrintTime']
+            jobprinttimeleft = r.json()['progress']['printTimeLeft']
             print 'Printer state: ' + printerstate
             print 'Job percent: ' + str(jobpercent) + '%'
             if jobfilename is not None:
@@ -287,6 +287,7 @@ class Panels(TabbedPanel):
             if printerstate is not None:
                 self.ids.printerstate.text = printerstate
             if jobpercent is not None:
+                jobpercent = int(jobpercent)
                 self.ids.jobpercent.text = str(jobpercent) + '%'
                 self.ids.progressbar.value = jobpercent
             if jobprinttime is not None:
@@ -297,6 +298,19 @@ class Panels(TabbedPanel):
                     minutes = int(jobprinttime/60)
                 seconds = int(jobprinttime % 60)
                 self.ids.jobprinttime.text = str(hours).zfill(2) + ':' + str(minutes).zfill(2) + ':' + str(seconds).zfill(2)
+            else:
+                self.ids.jobprinttime = '00:00:00'
+            if jobprinttimeleft is not None:
+                hours = int(jobprinttimeleft/60/60)
+                if hours > 0:
+                    minutes = int(jobprinttimeleft/60)-(60*hours)
+                else:
+                    minutes = int(jobprinttimeleft/60)
+                seconds = int(jobprinttimeleft % 60)
+                self.ids.jobprinttimeleft.text = str(hours).zfill(2) + ':' + str(minutes).zfill(2) + ':' + str(seconds).zfill(2)
+            else:
+                self.ids.jobprinttimeleft = '00:00:00'
+
         else:
             if r:
                 print 'Error. API Status Code: ' + str(r.status_code) #Print API status code if we have one
@@ -305,6 +319,8 @@ class Panels(TabbedPanel):
             self.ids.printerstate.text = 'Unknown'
             self.ids.jobpercent.text = 'N/A'
             self.ids.progressbar.value = 0
+            self.ids.jobprinttime = '00:00:00'
+            self.ids.jobprinttimeleft = '00:00:00'
 
 
     def updateipaddr(self, *args):
