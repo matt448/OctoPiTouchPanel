@@ -64,7 +64,7 @@ Builder.load_string("""
                 Image:
                     source: 'logo.png'
                     size_hint_y: None
-                    height: 108
+                    height: 100
                 GridLayout:
                     cols: 2
                     Label:
@@ -76,12 +76,13 @@ Builder.load_string("""
                     Label:
                         text: 'Machine State:'
                     Label:
-                        id: machinestate
+                        id: printerstate
                         text: 'Unknown'
                     Label:
                         text: 'File:'
                     Label:
-                        text: 'somefilename.gcode'
+                        id: jobfilename
+                        text: ' '
                     Label:
                         text: 'Time Elapsed:'
                     Label:
@@ -93,13 +94,14 @@ Builder.load_string("""
                     Label:
                         text: 'Printed: '
                     Label:
-                        text: '73%'
+                        id: jobpercent
+                        text: '---%'
                 ProgressBar:
-                    id: pb
+                    id: progressbar
                     size_hint_x: .97
                     size_hint_y: None
                     height: '15dp'
-                    value: 73
+                    value: 0
             ######################
             # Right Stats Area
             ######################
@@ -229,17 +231,16 @@ Builder.load_string("""
 class Panels(TabbedPanel):
     def gettemps(self, *args):
         try:
-            print 'Trying API request to Octoprint...'
+            print 'Trying /printer API request to Octoprint...'
             r = requests.get(printerapiurl, headers=headers, timeout=0.5)
         except requests.exceptions.RequestException as e:
-            print 'ERROR: Couldn\'t contact Octoprint API'
+            print 'ERROR: Couldn\'t contact Octoprint /printer API'
             print e
             r = False
         if r and r.status_code == 200:
             printeronline = True 
             hotendactual = r.json()['temperature']['tool0']['actual']
             hotendtarget = r.json()['temperature']['tool0']['target']
-            hotmsg = ('Hotend:') + str(hotendactual) + chr(223) + '/' + str(hotendtarget) + chr(223)
             bedactual = r.json()['temperature']['bed']['actual']
             bedtarget = r.json()['temperature']['bed']['target']
             print bedactual
@@ -263,6 +264,38 @@ class Panels(TabbedPanel):
             self.ids.bed_target.text = 'N/A'
             self.ids.hotend_target.text = 'N/A'
 
+    def getstats(self, *args):
+        try:
+            print 'Trying /job API request to Octoprint...'
+            r = requests.get(jobapiurl, headers=headers, timeout=0.5)
+        except requests.exceptions.RequestException as e:
+            print 'ERROR: Couldn\'t contact Octoprint /job API'
+            print e
+            r = False
+        if r and r.status_code == 200:
+            printerstate = r.json()['state']
+            jobfilename = r.json()['job']['file']['name']
+            jobpercent = r.json()['progress']['completion']
+            jobprinttime = r.json()['progress']['printTime']
+            jobestprinttime = r.json()['job']['estimatedPrintTime']
+            print 'Printer state: ' + printerstate
+            print 'Job percent: ' + str(jobpercent) + '%'
+            if jobfilename is not None:
+                self.ids.jobfilename.text = jobfilename
+            if printerstate is not None:
+                self.ids.printerstate.text = printerstate
+            if jobpercent is not None:
+                self.ids.jobpercent.text = str(jobpercent) + '%'
+                self.ids.progressbar.value = jobpercent
+        else:
+            if r:
+                print 'Error. API Status Code: ' + str(r.status_code) #Print API status code if we have one
+            #If we can't get any values from Octoprint just fill values with not available.
+            self.ids.jobfilename.text = 'N/A'
+            self.ids.printerstate.text = 'N/A'
+            self.ids.jobpercent.text = 'N/A'
+
+
     def updateipaddr(self, *args):
         global platform
         global nicname
@@ -279,6 +312,7 @@ class TabbedPanelApp(App):
         Window.size = (800, 480)
         panels = Panels()
         Clock.schedule_interval(panels.gettemps, 5) #Update bed and hotend temps every 5 seconds
+        Clock.schedule_interval(panels.getstats, 5) #Update bed and hotend temps every 5 seconds
         Clock.schedule_once(panels.updateipaddr, 0.5) #Update IP addr once right away
         Clock.schedule_interval(panels.updateipaddr, 30) #Then update IP every 30 seconds
         #return Panels()
