@@ -284,12 +284,19 @@ class Panels(TabbedPanel):
             print 'Job percent: ' + str(jobpercent) + '%'
             if jobfilename is not None:
                 self.ids.jobfilename.text = jobfilename
+            else:
+                self.ids.jobfilename.text = '-'
             if printerstate is not None:
                 self.ids.printerstate.text = printerstate
+            else:
+                self.ids.printerstate.text = 'Unknown'
             if jobpercent is not None:
                 jobpercent = int(jobpercent)
                 self.ids.jobpercent.text = str(jobpercent) + '%'
                 self.ids.progressbar.value = jobpercent
+            else:
+                self.ids.jobpercent.text = '---%'
+                self.ids.progressbar.value = 0
             if jobprinttime is not None:
                 hours = int(jobprinttime/60/60)
                 if hours > 0:
