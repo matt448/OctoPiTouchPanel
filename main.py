@@ -188,10 +188,6 @@ Builder.load_string("""
                     xmax: 0
                     ymin: 0
                     ymax: 300
-                    #**graph_theme
-                #Button:
-                    #size_hint: (1, .75)
-                    #text: 'Graph Area'
     ##############        
     # Tab2
     ##############
@@ -232,8 +228,14 @@ Builder.load_string("""
 
 class Panels(TabbedPanel):
     def gettemps(self, *args):
-        r = requests.get(printerapiurl, headers=headers)
-        if r.status_code == 200:
+        try:
+            print 'Trying API request to Octoprint...'
+            r = requests.get(printerapiurl, headers=headers, timeout=0.5)
+        except requests.exceptions.RequestException as e:
+            print 'ERROR: Couldn\'t contact Octoprint API'
+            print e
+            r = False
+        if r and r.status_code == 200:
             printeronline = True 
             hotendactual = r.json()['temperature']['tool0']['actual']
             hotendtarget = r.json()['temperature']['tool0']['target']
@@ -253,7 +255,13 @@ class Panels(TabbedPanel):
             else:
                 self.ids.hotend_target.text = 'OFF'
         else:
-            print 'Error. Status Code: ' + r.status_code
+            if r:
+                print 'Error. API Status Code: ' + str(r.status_code) #Print API status code if we have one
+            #If we can't get any values from Octoprint just fill values with not available.
+            self.ids.bed_actual.text = 'N/A'
+            self.ids.hotend_actual.text = 'N/A'
+            self.ids.bed_target.text = 'N/A'
+            self.ids.hotend_target.text = 'N/A'
 
     def updateipaddr(self, *args):
         global platform
