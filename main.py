@@ -25,12 +25,14 @@ import pprint
 
 
 
-# Define Octoprint constants
+# Read settings from the config file
 settings = ConfigParser.ConfigParser()
 settings.read('octoprint.cfg')
 host = settings.get('APISettings', 'host')
 nicname = settings.get('APISettings', 'nicname')
 apikey = settings.get('APISettings', 'apikey')
+
+# Define Octoprint constants
 printerapiurl = 'http://'+ host + '/api/printer'
 printheadurl = 'http://'+ host + '/api/printer/printhead'
 jobapiurl = 'http://' + host + '/api/job'
@@ -40,16 +42,21 @@ print headers
 bed_temp_val = 0.0
 hotend_temp_val = 0.0
 
-platform = sys.platform
+platform = sys.platform #Grab platform name for platform specific commands
 
 start_time = time.time()
 
+
+#Kivy widget layout
 Builder.load_string("""
+#:import rgb kivy.utils.get_color_from_hex
 <Panels>:
     size_hint: 1, 1
     pos_hint: {'center_x': .5, 'center_y': .5}
     do_default_tab: False
-    #Tab1
+    ##############        
+    # Tab1
+    ##############        
     TabbedPanelItem:
         id: tab1
         text: 'Status'
@@ -192,6 +199,10 @@ Builder.load_string("""
                     xmax: 0
                     ymin: 0
                     ymax: 300
+                    label_options: { 'color': rgb('444444'), 'bold': True}
+                    background_color: rgb('f8f8f2')  # back ground color of canvas
+                    tick_color: rgb('808080')  # ticks and grid
+                    border_color: rgb('808080')  # border drawn around each graph
     ##############        
     # Tab2
     ##############
@@ -234,7 +245,7 @@ class Panels(TabbedPanel):
     def gettemps(self, *args):
         try:
             print 'Trying /printer API request to Octoprint...'
-            r = requests.get(printerapiurl, headers=headers, timeout=0.5)
+            r = requests.get(printerapiurl, headers=headers, timeout=1)
         except requests.exceptions.RequestException as e:
             print 'ERROR: Couldn\'t contact Octoprint /printer API'
             print e
@@ -269,7 +280,7 @@ class Panels(TabbedPanel):
     def getstats(self, *args):
         try:
             print 'Trying /job API request to Octoprint...'
-            r = requests.get(jobapiurl, headers=headers, timeout=0.5)
+            r = requests.get(jobapiurl, headers=headers, timeout=1)
         except requests.exceptions.RequestException as e:
             print 'ERROR: Couldn\'t contact Octoprint /job API'
             print e
@@ -321,7 +332,7 @@ class Panels(TabbedPanel):
         else:
             if r:
                 print 'Error. API Status Code: ' + str(r.status_code) #Print API status code if we have one
-            #If we can't get any values from Octoprint just fill values with not available.
+            #If we can't get any values from Octoprint API fill with these values.
             self.ids.jobfilename.text = 'N/A'
             self.ids.printerstate.text = 'Unknown'
             self.ids.jobpercent.text = 'N/A'
@@ -332,7 +343,7 @@ class Panels(TabbedPanel):
 
     def updateipaddr(self, *args):
         global platform
-        global nicname
+        global nicname #Network card name from config file
         if 'linux' in platform or 'Linux' in platform:
             cmd = "ip addr show " + nicname + " | grep inet | awk '{print $2}' | cut -d/ -f1"
             p = Popen(cmd, shell=True, stdout=PIPE)
@@ -346,7 +357,7 @@ class TabbedPanelApp(App):
         Window.size = (800, 480)
         panels = Panels()
         Clock.schedule_interval(panels.gettemps, 5) #Update bed and hotend temps every 5 seconds
-        Clock.schedule_interval(panels.getstats, 5) #Update bed and hotend temps every 5 seconds
+        Clock.schedule_interval(panels.getstats, 5) #Update job stats every 5 seconds
         Clock.schedule_once(panels.updateipaddr, 0.5) #Update IP addr once right away
         Clock.schedule_interval(panels.updateipaddr, 30) #Then update IP every 30 seconds
         #return Panels()
