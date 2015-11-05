@@ -68,6 +68,7 @@ Builder.load_string("""
             BoxLayout:
                 size_hint: (.4, 1)
                 orientation: 'vertical'
+                padding: 10
                 Image:
                     source: 'logo.png'
                     size_hint_y: None
@@ -119,7 +120,7 @@ Builder.load_string("""
                 orientation: 'vertical'
                 GridLayout:
                     cols: 3
-                    size_hint: (1, .25)
+                    size_hint: (1, .3)
                     Label:
                         text: ' '
                         size_hint_y: None
