@@ -21,7 +21,29 @@ import ConfigParser
 import sys
 from subprocess import *
 import pprint
+from collections import deque #Fast pops from the ends of lists
 
+#Temperature lists
+hotendactual_list = deque([])
+hotendtarget_list = deque([])
+bedactual_list = deque([])
+bedtarget_list = deque([])
+
+#Initialize Temperature lists
+for i in range(360):
+    hotendactual_list.append(0)
+    hotendtarget_list.append(0)
+    bedactual_list.append(0)
+    bedtarget_list.append(0)
+#Fill timestamp list with 1000x time vals in seconds
+graphtime_list = []
+for i in range(360): #Fill the list with zeros
+  graphtime_list.append(0)
+
+graphtime_list[0] = 30000
+for i in range(359): #Replace values with decreasing seconds from 30 to 0
+    val = int(graphtime_list[i] - 83)
+    graphtime_list[i+1] = (val)
 
 
 
@@ -54,6 +76,7 @@ Builder.load_string("""
     size_hint: 1, 1
     pos_hint: {'center_x': .5, 'center_y': .5}
     do_default_tab: False
+    my_graph: my_graph
     ##############        
     # Tab1
     ##############        
@@ -184,6 +207,7 @@ Builder.load_string("""
                         valign: 'middle'
                         text: 'N/A' + u"\u00b0" + ' C'
                 Graph:
+                    id:my_graph
                     xlabel: 'Time'
                     ylabel: 'Temp'
                     x_ticks_minor: 5
@@ -259,6 +283,19 @@ class Panels(TabbedPanel):
             bedtarget = r.json()['temperature']['bed']['target']
             print bedactual
             print hotendactual
+            
+            print 'hotendactual_list length: ' + str(len(hotendactual_list))
+            print hotendactual_list
+            print hotendactual_list[358]
+            print hotendactual_list[359]
+            hotendactual_list.popleft()
+            hotendactual_list.append(hotendactual)
+            print 'hotendactual_list length: ' + str(len(hotendactual_list))
+            print hotendactual_list
+            print hotendactual_list[358]
+            print hotendactual_list[359]
+
+
             self.ids.bed_actual.text = str(bedactual) + u"\u00b0" + ' C'
             self.ids.hotend_actual.text = str(hotendactual)  + u"\u00b0" + ' C'
             if bedtarget > 0:
@@ -341,7 +378,6 @@ class Panels(TabbedPanel):
             self.ids.jobprinttime = '00:00:00'
             self.ids.jobprinttimeleft = '00:00:00'
 
-
     def updateipaddr(self, *args):
         global platform
         global nicname #Network card name from config file
@@ -352,15 +388,36 @@ class Panels(TabbedPanel):
             self.ids.ipaddr.text = output
         else:
             self.ids.ipaddr.text = 'Unknown Platform'
+    
+    def graphpoints(self, *args):
+        plot = SmoothLinePlot(color=[1, 0, 0, 1])
+        #Build the plot points list
+        points_list = []
+        for i in range(360):
+            points_list.append( (graphtime_list[i]/1000.0*-1, hotendactual_list[i]) )
+
+        #Remove old plots from the graph before drawing new ones
+        for plot in self.my_graph.plots:
+            self.my_graph.remove_plot(plot)
+        #plot.points = [(-30, 150), (-29, 150), (-28, 150), (-27, 150), (-26, 0)]
+
+        #Draw the new graph
+        plot.points = points_list
+        self.my_graph.add_plot(plot)
 
 class TabbedPanelApp(App):
     def build(self):
         Window.size = (800, 480)
         panels = Panels()
+        Clock.schedule_once(panels.gettemps, 0.5) #Update bed and hotend temps every 5 seconds
         Clock.schedule_interval(panels.gettemps, 5) #Update bed and hotend temps every 5 seconds
+
         Clock.schedule_interval(panels.getstats, 5) #Update job stats every 5 seconds
+
         Clock.schedule_once(panels.updateipaddr, 0.5) #Update IP addr once right away
         Clock.schedule_interval(panels.updateipaddr, 30) #Then update IP every 30 seconds
+
+        Clock.schedule_interval(panels.graphpoints, 10) #Update IP addr once right away
         #return Panels()
         return panels
 
