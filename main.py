@@ -284,17 +284,14 @@ class Panels(TabbedPanel):
             print bedactual
             print hotendactual
             
-            print 'hotendactual_list length: ' + str(len(hotendactual_list))
-            print hotendactual_list
-            print hotendactual_list[358]
-            print hotendactual_list[359]
             hotendactual_list.popleft()
             hotendactual_list.append(hotendactual)
-            print 'hotendactual_list length: ' + str(len(hotendactual_list))
-            print hotendactual_list
-            print hotendactual_list[358]
-            print hotendactual_list[359]
-
+            hotendtarget_list.popleft()
+            hotendtarget_list.append(hotendtarget)
+            bedactual_list.popleft()
+            bedactual_list.append(bedactual)
+            bedtarget_list.popleft()
+            bedtarget_list.append(bedtarget)
 
             self.ids.bed_actual.text = str(bedactual) + u"\u00b0" + ' C'
             self.ids.hotend_actual.text = str(hotendactual)  + u"\u00b0" + ' C'
@@ -390,20 +387,35 @@ class Panels(TabbedPanel):
             self.ids.ipaddr.text = 'Unknown Platform'
     
     def graphpoints(self, *args):
-        plot = SmoothLinePlot(color=[1, 0, 0, 1])
-        #Build the plot points list
-        points_list = []
+        hotendactual_plot = SmoothLinePlot(color=[1, 0, 0, 1])
+        hotendtarget_plot = MeshLinePlot(color=[1, 0, 0, .75])
+        bedactual_plot = SmoothLinePlot(color=[0, 0, 1, 1])
+        bedtarget_plot = MeshLinePlot(color=[0, 0, 1, .75])
+        #Build list of plot points tuples from temp and time lists
+        ##FIXME - Need to reduce the number of points on the graph. 360 is overkill
+        hotendactual_points_list = []
+        hotendtarget_points_list = []
+        bedactual_points_list = []
+        bedtarget_points_list = []
         for i in range(360):
-            points_list.append( (graphtime_list[i]/1000.0*-1, hotendactual_list[i]) )
+            hotendactual_points_list.append( (graphtime_list[i]/1000.0*-1, hotendactual_list[i]) )
+            hotendtarget_points_list.append( (graphtime_list[i]/1000.0*-1, hotendtarget_list[i]) )
+            bedactual_points_list.append( (graphtime_list[i]/1000.0*-1, bedactual_list[i]) )
+            bedtarget_points_list.append( (graphtime_list[i]/1000.0*-1, bedtarget_list[i]) )
 
-        #Remove old plots from the graph before drawing new ones
+        #Remove all old plots from the graph before drawing new ones
         for plot in self.my_graph.plots:
             self.my_graph.remove_plot(plot)
-        #plot.points = [(-30, 150), (-29, 150), (-28, 150), (-27, 150), (-26, 0)]
 
-        #Draw the new graph
-        plot.points = points_list
-        self.my_graph.add_plot(plot)
+        #Draw the new graphs
+        hotendactual_plot.points = hotendactual_points_list
+        self.my_graph.add_plot(hotendactual_plot)
+        hotendtarget_plot.points = hotendtarget_points_list
+        self.my_graph.add_plot(hotendtarget_plot)
+        bedactual_plot.points = bedactual_points_list
+        self.my_graph.add_plot(bedactual_plot)
+        bedtarget_plot.points = bedtarget_points_list
+        self.my_graph.add_plot(bedtarget_plot)
 
 class TabbedPanelApp(App):
     def build(self):
