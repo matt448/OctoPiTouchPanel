@@ -1,0 +1,4 @@
+[APISettings]
+host: 192.168.1.xx
+apikey: PUTYOUROCTOPRINTAPIKEYHERE 
+nicname: eth0
