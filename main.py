@@ -233,25 +233,54 @@ Builder.load_string("""
     ##############
     TabbedPanelItem:
         text: 'Control'
-        FloatLayout:
-            Button:
-                text: 'Button 1'
-                size_hint: (.10, .10)
-                pos: 100, 100
-            Button:
-                text: 'Button 2'
-                size_hint: (.10, .10)
-                pos: 200, 100
-            Button:
-                text: 'Button 3'
-                size_hint: (.10, .10)
-                pos: 300, 100
-            ProgressBar:
-                id: pb
-                size_hint_x: .5
-                size_hint_y: None
-                height: '64dp'
-                value: 73
+        GridLayout:
+            orientation: 'vertical'
+            cols: 3
+            padding: 10
+            Label:
+                text: 'X/Y'
+            Label:
+                text: 'Z'
+            Label:
+                text: 'Tool'
+            #Below X/Y
+            GridLayout:
+                orientation: 'vertical'
+                cols: 3
+                Label:
+                    text: ' '
+                Button:
+                    text: '^'
+                Label:
+                    text: ' '
+                Button:
+                    text: '<'
+                Button:
+                    text: 'H'
+                Button:
+                    text: '>'
+                Label:
+                    text: ' '
+                Button:
+                    text: 'v'
+                Label:
+                    text: ' '
+            #Below Z
+            GridLayout:
+                orientation: 'vertical'
+                cols: 1
+                Button:
+                    size_hint_x: None
+                    width: '25dp'
+                    text: '^'
+                Button:
+                    text: 'H'
+                Button:
+                    text: 'v'
+
+            #Below Tool
+            Label:
+                text: 'Below Tool'
 
     ##############        
     # Tab3
@@ -349,8 +378,8 @@ class Panels(TabbedPanel):
                     minutes = int(jobprinttime/60)-(60*hours)
                 else:
                     minutes = int(jobprinttime/60)
-                    seconds = int(jobprinttime % 60)
-                    self.ids.jobprinttime.text = str(hours).zfill(2) + ':' + str(minutes).zfill(2) + ':' + str(seconds).zfill(2)
+                seconds = int(jobprinttime % 60)
+                self.ids.jobprinttime.text = str(hours).zfill(2) + ':' + str(minutes).zfill(2) + ':' + str(seconds).zfill(2)
             else:
                 self.ids.jobprinttime.text = '00:00:00'
             if jobprinttimeleft is not None:
