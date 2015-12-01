@@ -401,8 +401,8 @@ class Panels(TabbedPanel):
             self.ids.printerstate.text = 'Unknown'
             self.ids.jobpercent.text = 'N/A'
             self.ids.progressbar.value = 0
-            self.ids.jobprinttime = '00:00:00'
-            self.ids.jobprinttimeleft = '00:00:00'
+            self.ids.jobprinttime.text = '--:--:--'
+            self.ids.jobprinttimeleft.text = '--:--:--'
 
     def updateipaddr(self, *args):
         global platform
