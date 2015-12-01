@@ -358,6 +358,7 @@ class Panels(TabbedPanel):
             print 'Printer state: ' + printerstate
             print 'Job percent: ' + str(jobpercent) + '%'
             if jobfilename is not None:
+                jobfilename = jobfilename[:25] #Shorten filename to 25 characters
                 self.ids.jobfilename.text = jobfilename
             else:
                 self.ids.jobfilename.text = '-'
