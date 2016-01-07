@@ -59,6 +59,8 @@ printerapiurl = 'http://'+ host + '/api/printer'
 printheadurl = 'http://'+ host + '/api/printer/printhead'
 jobapiurl = 'http://' + host + '/api/job'
 headers = {'X-Api-Key': apikey, 'content-type': 'application/json'}
+homexydata = {'command': 'home', 'axes': ['x', 'y']}
+homezdata = {'command': 'home', 'axes': ['z']}
 print headers
 
 bed_temp_val = 0.0
@@ -257,6 +259,8 @@ Builder.load_string("""
                     text: '<'
                 Button:
                     text: 'H'
+                    id: homexy
+                    on_press: root.homexy()
                 Button:
                     text: '>'
                 Label:
@@ -340,6 +344,16 @@ class Panels(TabbedPanel):
             self.ids.hotend_actual.text = 'N/A'
             self.ids.bed_target.text = 'N/A'
             self.ids.hotend_target.text = 'N/A'
+
+    def homexy(self, *args):
+        try:
+            print '[HOME X/Y] Trying /API request to Octoprint...'
+            r = requests.post(printheadurl, headers=headers, json=homexydata, timeout=1)
+            print 'STATUS CODE: ' + str(r.status_code)
+        except requests.exceptions.RequestException as e:
+            print 'ERROR: Couldn\'t contact Octoprint /job API'
+            print e
+            r = False
 
     def getstats(self, *args):
         try:
