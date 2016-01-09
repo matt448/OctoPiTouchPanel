@@ -57,6 +57,7 @@ apikey = settings.get('APISettings', 'apikey')
 # Define Octoprint constants
 printerapiurl = 'http://'+ host + '/api/printer'
 printheadurl = 'http://'+ host + '/api/printer/printhead'
+bedurl = 'http://'+ host + '/api/printer/bed'
 jobapiurl = 'http://' + host + '/api/job'
 connectionurl = 'http://' + host + '/api/connection'
 headers = {'X-Api-Key': apikey, 'content-type': 'application/json'}
@@ -78,6 +79,7 @@ Builder.load_string("""
     size_hint: 1, 1
     pos_hint: {'center_x': .5, 'center_y': .5}
     do_default_tab: False
+    tab_height: '60dp'
     my_graph: my_graph
     ##############        
     # Tab1
@@ -85,6 +87,7 @@ Builder.load_string("""
     TabbedPanelItem:
         id: tab1
         text: 'Status'
+        font_size: '20sp'
         BoxLayout:
             orientation: 'horizontal'
             ######################
@@ -235,6 +238,7 @@ Builder.load_string("""
     ##############
     TabbedPanelItem:
         text: 'Control'
+        font_size: '20sp'
         FloatLayout:
             #X/Y Axis buttons
             Label:
@@ -353,24 +357,44 @@ Builder.load_string("""
     ##############        
     TabbedPanelItem:
         ##NOTE: http://kivy.org/docs/examples/gen__camera__main__py.html
-        text: 'Settings'
-        RstDocument:
-            text:
-                '\\n'.join(("Hello world", "-----------",
-                "You are in the third tab."))
-""")
+        text: 'Temps'
+        font_size: '20sp'
+        FloatLayout:
+            Slider:
+                id: bedslider
+                max: 100
+                value: int(0)
+                on_value: bedslider.value = int(self.value)
+                size_hint: .80, 1
+                pos: 160, 150
+            Label:
+                text: 'Selected Bed Target: ' + str(bedslider.value) + 'C'
+                font_size: '20sp'
+                halign: 'left'
+                pos: 50, 125
+            Button:
+                id: sendbedtarget
+                text: 'Set Bed Target'
+                on_press: root.setbedtarget(bedslider.value)
+                size_hint: .18, .12
+                pos: 10, 325
+
+""")#End of kv syntax
 
 
 class Panels(TabbedPanel):
     def gettemps(self, *args):
         try:
-            print 'Trying /printer API request to Octoprint...'
+            print '[GET TEMPS] Trying /printer API request to Octoprint...'
             r = requests.get(printerapiurl, headers=headers, timeout=1)
+            print '[GET TEMPS] STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
-            print 'ERROR: Couldn\'t contact Octoprint /printer API'
+            print '[GET TEMPS] ERROR: Couldn\'t contact Octoprint /printer API'
             print e
             r = False
-        if r and r.status_code == 200 and r.json()['temperature']['tool0']:
+        if r and r.status_code == 200:
+            print '[GET TEMPS] JSON Data: ' + str(r.json())
+        if r and r.status_code == 200 and 'tool0' in r.json()['temperature']:
             printeronline = True 
             hotendactual = r.json()['temperature']['tool0']['actual']
             hotendtarget = r.json()['temperature']['tool0']['target']
@@ -412,7 +436,7 @@ class Panels(TabbedPanel):
         try:
             print '[HOME Z] Trying /API request to Octoprint...'
             r = requests.post(printheadurl, headers=headers, json=homezdata, timeout=1)
-            print 'STATUS CODE: ' + str(r.status_code)
+            print '[HOME Z] STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
             print 'ERROR: Couldn\'t contact Octoprint /job API'
             print e
@@ -530,23 +554,36 @@ class Panels(TabbedPanel):
             print e
             r = False
  
+    def setbedtarget(self, *args):
+        bedsliderval = args[0]
+        bedtargetdata = {'command': 'target', 'target': bedsliderval}
+        print '[BED TARGET] New Value: ' + str(bedsliderval) + ' C'
+        try:
+            print '[BED TARGET] Trying /API request to Octoprint...'
+            r = requests.post(bedurl, headers=headers, json=bedtargetdata, timeout=1)
+            print '[BED TARGET] STATUS CODE: ' + str(r.status_code)
+        except requests.exceptions.RequestException as e:
+            print '[BED TARGET] ERROR: Couldn\'t contact Octoprint /job API'
+            print e
+            r = False
 
     def getstats(self, *args):
         try:
-            print 'Trying /job API request to Octoprint...'
+            print '[GET STATS] Trying /job API request to Octoprint...'
             r = requests.get(jobapiurl, headers=headers, timeout=1)
         except requests.exceptions.RequestException as e:
-            print 'ERROR: Couldn\'t contact Octoprint /job API'
+            print '[GET STATS] ERROR: Couldn\'t contact Octoprint /job API'
             print e
             r = False
         if r and r.status_code == 200:
+            print '[GET STATS] JSON Data: ' + str(r.json())
             printerstate = r.json()['state']
             jobfilename = r.json()['job']['file']['name']
             jobpercent = r.json()['progress']['completion']
             jobprinttime = r.json()['progress']['printTime']
             jobprinttimeleft = r.json()['progress']['printTimeLeft']
-            print 'Printer state: ' + printerstate
-            print 'Job percent: ' + str(jobpercent) + '%'
+            print '[GET STATS] Printer state: ' + printerstate
+            print '[GET STATS] Job percent: ' + str(jobpercent) + '%'
             if jobfilename is not None:
                 jobfilename = jobfilename[:25] #Shorten filename to 25 characters
                 self.ids.jobfilename.text = jobfilename
@@ -557,6 +594,7 @@ class Panels(TabbedPanel):
                 self.ids.printerstate2.text = printerstate
             else:
                 self.ids.printerstate.text = 'Unknown'
+                self.ids.printerstate2.text = 'Unknown'
             if jobpercent is not None:
                 jobpercent = int(jobpercent)
                 self.ids.jobpercent.text = str(jobpercent) + '%'
@@ -591,6 +629,7 @@ class Panels(TabbedPanel):
             #If we can't get any values from Octoprint API fill with these values.
             self.ids.jobfilename.text = 'N/A'
             self.ids.printerstate.text = 'Unknown'
+            self.ids.printerstate2.text = 'Unknown'
             self.ids.jobpercent.text = 'N/A'
             self.ids.progressbar.value = 0
             self.ids.jobprinttime.text = '--:--:--'
