@@ -233,69 +233,67 @@ Builder.load_string("""
     ##############
     TabbedPanelItem:
         text: 'Control'
-        GridLayout:
-            orientation: 'vertical'
-            cols: 3
-            padding: 10
+        FloatLayout:
+            #X/Y Axis buttons
             Label:
                 text: 'X/Y'
+                font_size: '35sp'
+                pos: -270, 20
+            Button:
+                text: '^'
+                id: jogforward
+                on_press: root.jogforward()
+                pos: 100, 160
+                size_hint: .07, .1
+            Button:
+                text: '<'
+                id:jogleft
+                on_press: root.jogleft()
+                pos: 25, 100
+                size_hint: .07, .1
+            Button:
+                text: 'H'
+                id: homexy
+                on_press: root.homexy()
+                pos: 100, 100
+                size_hint: .07, .1
+            Button:
+                text: '>'
+                id: jogright
+                on_press: root.jogright()
+                pos: 175, 100
+                size_hint: .07, .1
+            Button:
+                text: 'v'
+                id: jogbackward
+                on_press: root.jogbackward()
+                pos: 100, 40
+                size_hint: .07, .1
+        #Z axis buttons
             Label:
                 text: 'Z'
-            Label:
-                text: 'Tool'
-            #Below X/Y
-            GridLayout:
-                orientation: 'vertical'
-                cols: 3
-                Label:
-                    text: ' '
-                Button:
-                    text: '^'
-                    id: jogforward
-                    on_press: root.jogforward()
-                Label:
-                    text: ' '
-                Button:
-                    text: '<'
-                    id:jogleft
-                    on_press: root.jogleft()
-                Button:
-                    text: 'H'
-                    id: homexy
-                    on_press: root.homexy()
-                Button:
-                    text: '>'
-                    id: jogright
-                    on_press: root.jogright()
-                Label:
-                    text: ' '
-                Button:
-                    text: 'v'
-                    id: jogbackward
-                    on_press: root.jogbackward()
-                Label:
-                    text: ' '
-            #Below Z
-            GridLayout:
-                orientation: 'vertical'
-                cols: 1
-                Button:
-                    size_hint_x: None
-                    width: '25dp'
-                    text: '^'
-                    on_press: root.jogzup()
-                Button:
-                    text: 'H'
-                    id: homez
-                    on_press: root.homez()
-                Button:
-                    text: 'v'
-                    id: jogzdown
-                    on_press: root.jogzdown()
+                font_size: '35sp'
+                pos: -70, 20
+            Button:
+                size_hint_x: None
+                width: '25dp'
+                text: '^'
+                on_press: root.jogzup()
+                pos: 300, 160
+                size_hint: .07, .1
+            Button:
+                text: 'H'
+                id: homez
+                on_press: root.homez()
+                pos: 300, 100
+                size_hint: .07, .1
+            Button:
+                text: 'v'
+                id: jogzdown
+                on_press: root.jogzdown()
+                pos: 300, 40
+                size_hint: .07, .1
 
-            #Below Tool
-            Label:
-                text: 'Below Tool'
 
     ##############        
     # Tab3
