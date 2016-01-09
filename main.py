@@ -58,11 +58,13 @@ apikey = settings.get('APISettings', 'apikey')
 printerapiurl = 'http://'+ host + '/api/printer'
 printheadurl = 'http://'+ host + '/api/printer/printhead'
 jobapiurl = 'http://' + host + '/api/job'
+connectionurl = 'http://' + host + '/api/connection'
 headers = {'X-Api-Key': apikey, 'content-type': 'application/json'}
 print headers
 
 bed_temp_val = 0.0
 hotend_temp_val = 0.0
+jogincrement = 10
 
 platform = sys.platform #Grab platform name for platform specific commands
 
@@ -269,7 +271,7 @@ Builder.load_string("""
                 on_press: root.jogbackward()
                 pos: 100, 40
                 size_hint: .07, .1
-        #Z axis buttons
+            #Z axis buttons
             Label:
                 text: 'Z'
                 font_size: '35sp'
@@ -293,6 +295,57 @@ Builder.load_string("""
                 on_press: root.jogzdown()
                 pos: 300, 40
                 size_hint: .07, .1
+            #Connect Button
+            Label:
+                id: printerstate2
+                text: 'Unknown'
+                pos: 310, 195
+            Button:
+                text: 'Connect'
+                id: connect
+                on_press: root.connect()
+                pos: 650, 350
+                size_hint: .15, .08
+            Button:
+                text: 'Disconnect'
+                id: connect
+                on_press: root.disconnect()
+                pos: 650, 300
+                size_hint: .15, .09
+            ToggleButton:
+                text: '0.1'
+                id: joginc01
+                on_press: root.jogincrement(0.1)
+                group: 'jogincrement'
+                state: 'normal'
+                pos: 0, 0
+                size_hint: .05, .09
+            ToggleButton:
+                text: '1'
+                id: joginc1
+                on_press: root.jogincrement(1)
+                group: 'jogincrement'
+                state: 'normal'
+                pos: 60, 0
+                size_hint: .05, .09
+            ToggleButton:
+                text: '10'
+                id: joginc10
+                on_press: root.jogincrement(10)
+                group: 'jogincrement'
+                state: 'down'
+                pos: 120, 0
+                size_hint: .05, .09
+            ToggleButton:
+                text: '100'
+                id: joginc100
+                on_press: root.jogincrement(100)
+                group: 'jogincrement'
+                state: 'normal'
+                pos: 180, 0
+                size_hint: .05, .09
+
+
 
 
     ##############        
@@ -317,7 +370,7 @@ class Panels(TabbedPanel):
             print 'ERROR: Couldn\'t contact Octoprint /printer API'
             print e
             r = False
-        if r and r.status_code == 200:
+        if r and r.status_code == 200 and r.json()['temperature']['tool0']:
             printeronline = True 
             hotendactual = r.json()['temperature']['tool0']['actual']
             hotendtarget = r.json()['temperature']['tool0']['target']
@@ -366,7 +419,7 @@ class Panels(TabbedPanel):
             r = False
 
     def jogzup(self, *args):
-        jogzupdata = {'command': 'jog', 'z': 10}
+        jogzupdata = {'command': 'jog', 'z': jogincrement}
         try:
             print '[JOG Z UP] Trying /API request to Octoprint...'
             r = requests.post(printheadurl, headers=headers, json=jogzupdata, timeout=1)
@@ -377,7 +430,7 @@ class Panels(TabbedPanel):
             r = False
 
     def jogzdown(self, *args):
-        jogzdowndata = {'command': 'jog', 'z': -10}
+        jogzdowndata = {'command': 'jog', 'z': (jogincrement * -1)}
         try:
             print '[JOG Z UP] Trying /API request to Octoprint...'
             r = requests.post(printheadurl, headers=headers, json=jogzdowndata, timeout=1)
@@ -399,9 +452,10 @@ class Panels(TabbedPanel):
             r = False
 
     def jogleft(self, *args):
-        jogleftdata = {'command': 'jog', 'x': 10}
+        jogleftdata = {'command': 'jog', 'x': jogincrement}
         try:
             print '[JOG LEFT] Trying /API request to Octoprint...'
+            print '[JOG LEFT] Data: ' + str(jogleftdata)
             r = requests.post(printheadurl, headers=headers, json=jogleftdata, timeout=1)
             print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
@@ -410,9 +464,10 @@ class Panels(TabbedPanel):
             r = False
 
     def jogright(self, *args):
-        jogrightdata = {'command': 'jog', 'x': -10}
+        jogrightdata = {'command': 'jog', 'x': (jogincrement * -1)}
         try:
             print '[JOG RIGHT] Trying /API request to Octoprint...'
+            print '[JOG RIGHT] Data: ' + str(jogrightdata)
             r = requests.post(printheadurl, headers=headers, json=jogrightdata, timeout=1)
             print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
@@ -421,7 +476,7 @@ class Panels(TabbedPanel):
             r = False
 
     def jogforward(self, *args):
-        jogforwarddata = {'command': 'jog', 'y': 10}
+        jogforwarddata = {'command': 'jog', 'y': jogincrement}
         try:
             print '[JOG FORWARD] Trying /API request to Octoprint...'
             r = requests.post(printheadurl, headers=headers, json=jogforwarddata, timeout=1)
@@ -432,7 +487,7 @@ class Panels(TabbedPanel):
             r = False
 
     def jogbackward(self, *args):
-        jogbackwarddata = {'command': 'jog', 'y': -10}
+        jogbackwarddata = {'command': 'jog', 'y': (jogincrement * -1)}
         try:
             print '[JOG BACKWARD] Trying /API request to Octoprint...'
             r = requests.post(printheadurl, headers=headers, json=jogbackwarddata, timeout=1)
@@ -442,7 +497,39 @@ class Panels(TabbedPanel):
             print e
             r = False
 
+    def jogincrement(self, *args):
+        global jogincrement
+        print '[JOG INCREMENT] Button pressed'
+        print '[JOG INCREMENT] INC: ' + str(args[0])
+        jogincrement = args[0]
 
+    def connect(self, *args):
+        connectiondata = {'command': 'connect', 'port': '/dev/ttyACM0', 'baudrate': 250000, \
+                'save': False, 'autoconnect': False}
+        try:
+            print '[CONNECT] Trying /job API request to Octoprint...'
+            print '[CONNECT] ' + connectionurl + str(connectiondata)
+            r = requests.post(connectionurl, headers=headers, json=connectiondata, timeout=1)
+            print '[CONNECT] STATUS CODE: ' + str(r.status_code)
+            print '[CONNECT] RESPONSE: ' + r.text
+        except requests.exceptions.RequestException as e:
+            print '[CONNECT] ERROR: Couldn\'t contact Octoprint /job API'
+            print e
+            r = False
+
+    def disconnect(self, *args):
+        disconnectdata = {'command': 'disconnect'}
+        try:
+            print '[DISCONNECT] Trying /job API request to Octoprint...'
+            print '[DISCONNECT] ' + connectionurl + str(disconnectdata)
+            r = requests.post(connectionurl, headers=headers, json=disconnectdata, timeout=1)
+            print '[DISCONNECT] STATUS CODE: ' + str(r.status_code)
+            print '[DISCONNECT] RESPONSE: ' + r.text
+        except requests.exceptions.RequestException as e:
+            print '[DISCONNECT] ERROR: Couldn\'t contact Octoprint /job API'
+            print e
+            r = False
+ 
 
     def getstats(self, *args):
         try:
@@ -467,6 +554,7 @@ class Panels(TabbedPanel):
                 self.ids.jobfilename.text = '-'
             if printerstate is not None:
                 self.ids.printerstate.text = printerstate
+                self.ids.printerstate2.text = printerstate
             else:
                 self.ids.printerstate.text = 'Unknown'
             if jobpercent is not None:
