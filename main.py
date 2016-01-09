@@ -55,9 +55,11 @@ nicname = settings.get('APISettings', 'nicname')
 apikey = settings.get('APISettings', 'apikey')
 
 # Define Octoprint constants
+httptimeout = 3  #http request timeout in seconds
 printerapiurl = 'http://'+ host + '/api/printer'
 printheadurl = 'http://'+ host + '/api/printer/printhead'
 bedurl = 'http://'+ host + '/api/printer/bed'
+toolurl = 'http://'+ host + '/api/printer/tool'
 jobapiurl = 'http://' + host + '/api/job'
 connectionurl = 'http://' + host + '/api/connection'
 headers = {'X-Api-Key': apikey, 'content-type': 'application/json'}
@@ -360,6 +362,9 @@ Builder.load_string("""
         text: 'Temps'
         font_size: '20sp'
         FloatLayout:
+            #################
+            #Bed temp slider
+            #################
             Slider:
                 id: bedslider
                 max: 100
@@ -368,7 +373,7 @@ Builder.load_string("""
                 size_hint: .80, 1
                 pos: 160, 150
             Label:
-                text: 'Selected Bed Target: ' + str(bedslider.value) + 'C'
+                text: 'Selected Bed Target: ' + str(bedslider.value) + u"\u00b0" + ' C'
                 font_size: '20sp'
                 halign: 'left'
                 pos: 50, 125
@@ -378,6 +383,28 @@ Builder.load_string("""
                 on_press: root.setbedtarget(bedslider.value)
                 size_hint: .18, .12
                 pos: 10, 325
+            ####################
+            #Hot end temp slider
+            ####################
+            Slider:
+                id: hotendslider
+                max: 300
+                value: int(0)
+                on_value: hotendslider.value = int(self.value)
+                size_hint: .80, 1
+                pos: 160, 10
+            Label:
+                text: 'Selected Hot End Target: ' + str(hotendslider.value) + u"\u00b0" + ' C'
+                font_size: '20sp'
+                halign: 'left'
+                pos: 50, -15
+            Button:
+                id: sendhotendtarget
+                text: 'Set Hot End Target'
+                on_press: root.sethotendtarget(hotendslider.value)
+                size_hint: .18, .12
+                pos: 10, 180
+
 
 """)#End of kv syntax
 
@@ -386,7 +413,7 @@ class Panels(TabbedPanel):
     def gettemps(self, *args):
         try:
             print '[GET TEMPS] Trying /printer API request to Octoprint...'
-            r = requests.get(printerapiurl, headers=headers, timeout=1)
+            r = requests.get(printerapiurl, headers=headers, timeout=httptimeout)
             print '[GET TEMPS] STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
             print '[GET TEMPS] ERROR: Couldn\'t contact Octoprint /printer API'
@@ -435,7 +462,7 @@ class Panels(TabbedPanel):
         homezdata = {'command': 'home', 'axes': ['z']}
         try:
             print '[HOME Z] Trying /API request to Octoprint...'
-            r = requests.post(printheadurl, headers=headers, json=homezdata, timeout=1)
+            r = requests.post(printheadurl, headers=headers, json=homezdata, timeout=httptimeout)
             print '[HOME Z] STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
             print 'ERROR: Couldn\'t contact Octoprint /job API'
@@ -446,7 +473,7 @@ class Panels(TabbedPanel):
         jogzupdata = {'command': 'jog', 'z': jogincrement}
         try:
             print '[JOG Z UP] Trying /API request to Octoprint...'
-            r = requests.post(printheadurl, headers=headers, json=jogzupdata, timeout=1)
+            r = requests.post(printheadurl, headers=headers, json=jogzupdata, timeout=httptimeout)
             print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
             print 'ERROR: Couldn\'t contact Octoprint /job API'
@@ -457,7 +484,7 @@ class Panels(TabbedPanel):
         jogzdowndata = {'command': 'jog', 'z': (jogincrement * -1)}
         try:
             print '[JOG Z UP] Trying /API request to Octoprint...'
-            r = requests.post(printheadurl, headers=headers, json=jogzdowndata, timeout=1)
+            r = requests.post(printheadurl, headers=headers, json=jogzdowndata, timeout=httptimeout)
             print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
             print 'ERROR: Couldn\'t contact Octoprint /job API'
@@ -468,7 +495,7 @@ class Panels(TabbedPanel):
         homexydata = {'command': 'home', 'axes': ['x', 'y']}
         try:
             print '[HOME X/Y] Trying /API request to Octoprint...'
-            r = requests.post(printheadurl, headers=headers, json=homexydata, timeout=1)
+            r = requests.post(printheadurl, headers=headers, json=homexydata, timeout=httptimeout)
             print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
             print 'ERROR: Couldn\'t contact Octoprint /job API'
@@ -480,7 +507,7 @@ class Panels(TabbedPanel):
         try:
             print '[JOG LEFT] Trying /API request to Octoprint...'
             print '[JOG LEFT] Data: ' + str(jogleftdata)
-            r = requests.post(printheadurl, headers=headers, json=jogleftdata, timeout=1)
+            r = requests.post(printheadurl, headers=headers, json=jogleftdata, timeout=httptimeout)
             print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
             print 'ERROR: Couldn\'t contact Octoprint /job API'
@@ -492,7 +519,7 @@ class Panels(TabbedPanel):
         try:
             print '[JOG RIGHT] Trying /API request to Octoprint...'
             print '[JOG RIGHT] Data: ' + str(jogrightdata)
-            r = requests.post(printheadurl, headers=headers, json=jogrightdata, timeout=1)
+            r = requests.post(printheadurl, headers=headers, json=jogrightdata, timeout=httptimeout)
             print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
             print 'ERROR: Couldn\'t contact Octoprint /job API'
@@ -503,7 +530,7 @@ class Panels(TabbedPanel):
         jogforwarddata = {'command': 'jog', 'y': jogincrement}
         try:
             print '[JOG FORWARD] Trying /API request to Octoprint...'
-            r = requests.post(printheadurl, headers=headers, json=jogforwarddata, timeout=1)
+            r = requests.post(printheadurl, headers=headers, json=jogforwarddata, timeout=httptimeout)
             print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
             print 'ERROR: Couldn\'t contact Octoprint /job API'
@@ -514,7 +541,7 @@ class Panels(TabbedPanel):
         jogbackwarddata = {'command': 'jog', 'y': (jogincrement * -1)}
         try:
             print '[JOG BACKWARD] Trying /API request to Octoprint...'
-            r = requests.post(printheadurl, headers=headers, json=jogbackwarddata, timeout=1)
+            r = requests.post(printheadurl, headers=headers, json=jogbackwarddata, timeout=httptimeout)
             print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
             print 'ERROR: Couldn\'t contact Octoprint /job API'
@@ -533,7 +560,7 @@ class Panels(TabbedPanel):
         try:
             print '[CONNECT] Trying /job API request to Octoprint...'
             print '[CONNECT] ' + connectionurl + str(connectiondata)
-            r = requests.post(connectionurl, headers=headers, json=connectiondata, timeout=1)
+            r = requests.post(connectionurl, headers=headers, json=connectiondata, timeout=httptimeout)
             print '[CONNECT] STATUS CODE: ' + str(r.status_code)
             print '[CONNECT] RESPONSE: ' + r.text
         except requests.exceptions.RequestException as e:
@@ -546,7 +573,7 @@ class Panels(TabbedPanel):
         try:
             print '[DISCONNECT] Trying /job API request to Octoprint...'
             print '[DISCONNECT] ' + connectionurl + str(disconnectdata)
-            r = requests.post(connectionurl, headers=headers, json=disconnectdata, timeout=1)
+            r = requests.post(connectionurl, headers=headers, json=disconnectdata, timeout=httptimeout)
             print '[DISCONNECT] STATUS CODE: ' + str(r.status_code)
             print '[DISCONNECT] RESPONSE: ' + r.text
         except requests.exceptions.RequestException as e:
@@ -560,12 +587,29 @@ class Panels(TabbedPanel):
         print '[BED TARGET] New Value: ' + str(bedsliderval) + ' C'
         try:
             print '[BED TARGET] Trying /API request to Octoprint...'
-            r = requests.post(bedurl, headers=headers, json=bedtargetdata, timeout=1)
+            r = requests.post(bedurl, headers=headers, json=bedtargetdata, timeout=httptimeout)
             print '[BED TARGET] STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
             print '[BED TARGET] ERROR: Couldn\'t contact Octoprint /job API'
             print e
             r = False
+
+    def sethotendtarget(self, *args):
+        hotendsliderval = args[0]
+        hotendtargetdata = {'command': 'target', 'targets': {'tool0': hotendsliderval}}
+        print '[HOTEND TARGET] New Value: ' + str(hotendsliderval) + ' C'
+        try:
+            print '[HOTEND TARGET] Trying /API request to Octoprint...'
+            r = requests.post(toolurl, headers=headers, json=hotendtargetdata, timeout=httptimeout)
+            print '[HOTEND TARGET] STATUS CODE: ' + str(r.status_code)
+        except requests.exceptions.RequestException as e:
+            print '[HOTEND TARGET] ERROR: Couldn\'t contact Octoprint /job API'
+            print e
+            r = False
+
+
+
+
 
     def getstats(self, *args):
         try:
