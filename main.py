@@ -100,7 +100,7 @@ Builder.load_string("""
                 orientation: 'vertical'
                 padding: 10
                 Image:
-                    source: 'logo.png'
+                    source: 'img/logo.png'
                     size_hint_y: None
                     height: 100
                 GridLayout:
@@ -370,20 +370,37 @@ Builder.load_string("""
                 max: 100
                 value: int(0)
                 on_value: bedslider.value = int(self.value)
-                size_hint: .80, 1
-                pos: 160, 150
+                size_hint: .80, .15
+                pos: 160, 295
             Label:
                 text: 'Selected Bed Target: ' + str(bedslider.value) + u"\u00b0" + ' C'
                 font_size: '20sp'
                 halign: 'left'
-                pos: 50, 125
+                pos: 50, 150
             Button:
-                id: sendbedtarget
+                id: setbedtarget
                 text: 'Set Bed Target'
                 on_press: root.setbedtarget(bedslider.value)
                 size_hint: .18, .12
                 pos: 10, 325
-            ####################
+            Button:
+                id: setbedoff
+                text: 'Turn Off Bed'
+                on_press: root.setbedtarget(0)
+                size_hint: .18, .12
+                pos: 10, 270
+            Label:
+                id: tab3_bed_actual
+                text: 'Bed Actual: ' + bed_actual.text
+                font_size: '16sp'
+                pos: -60, 80
+            Label:
+                id: tab3_bed_target
+                text: 'Bed Target: ' + bed_target.text
+                font_size: '16sp'
+                pos: 200, 80
+
+           ####################
             #Hot end temp slider
             ####################
             Slider:
@@ -391,8 +408,13 @@ Builder.load_string("""
                 max: 300
                 value: int(0)
                 on_value: hotendslider.value = int(self.value)
-                size_hint: .80, 1
-                pos: 160, 10
+                size_hint: .80, .15
+                pos: 160, 120
+            ProgressBar:
+                id: hotendpb
+                size_hint: .76, .15
+                pos: 176, 90
+                value: 0
             Label:
                 text: 'Selected Hot End Target: ' + str(hotendslider.value) + u"\u00b0" + ' C'
                 font_size: '20sp'
@@ -403,7 +425,23 @@ Builder.load_string("""
                 text: 'Set Hot End Target'
                 on_press: root.sethotendtarget(hotendslider.value)
                 size_hint: .18, .12
-                pos: 10, 180
+                pos: 10, 150
+            Button:
+                id: sethotendoff
+                text: 'Turn Off Hot End'
+                on_press: root.sethotendtarget(0)
+                size_hint: .18, .12
+                pos: 10, 95
+            Label:
+                id: tab3_hotend_actual
+                text: 'Hot End Actual: ' + hotend_actual.text
+                font_size: '16sp'
+                pos: -60, -100
+            Label:
+                id: tab3_hotend_target
+                text: 'Hot End Target: ' + hotend_target.text
+                font_size: '16sp'
+                pos: 200, -100
 
 
 """)#End of kv syntax
@@ -438,6 +476,30 @@ class Panels(TabbedPanel):
             bedactual_list.append(bedactual)
             bedtarget_list.popleft()
             bedtarget_list.append(bedtarget)
+
+            #Update text color on Temps tab if values are above 40C
+            if bedactual > 40:
+                self.ids.tab3_bed_actual.color = [1, 0, 0, 1]
+            else:
+                self.ids.tab3_bed_actual.color = [1, 1, 1, 1]
+
+            if bedtarget > 40:
+                self.ids.tab3_bed_target.color = [1, 0, 0, 1]
+            else:
+                self.ids.tab3_bed_target.color = [1, 1, 1, 1]
+
+            if hotendactual > 40:
+                self.ids.tab3_hotend_actual.color = [1, 0, 0, 1]
+            else:
+                self.ids.tab3_hotend_actual.color = [1, 1, 1, 1]
+
+            if hotendtarget > 40:
+                self.ids.tab3_hotend_target.color = [1, 0, 0, 1]
+            else:
+                self.ids.tab3_hotend_target.color = [1, 1, 1, 1]
+
+            self.ids.hotendpb.value = (hotendactual / self.ids.hotendslider.max) * 100
+
 
             self.ids.bed_actual.text = str(bedactual) + u"\u00b0" + ' C'
             self.ids.hotend_actual.text = str(hotendactual)  + u"\u00b0" + ' C'
