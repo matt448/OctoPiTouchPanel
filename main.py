@@ -246,61 +246,61 @@ Builder.load_string("""
             Label:
                 text: 'X/Y'
                 font_size: '35sp'
-                pos: -270, 20
+                pos: -265, 60
             Button:
                 text: '^'
                 id: jogforward
                 on_press: root.jogforward()
-                pos: 100, 160
-                size_hint: .07, .1
+                pos: 100, 180
+                size_hint: .09, .14
             Button:
                 text: '<'
                 id:jogleft
                 on_press: root.jogleft()
-                pos: 25, 100
-                size_hint: .07, .1
+                pos: 25, 120
+                size_hint: .09, .14
             Button:
                 text: 'H'
                 id: homexy
                 on_press: root.homexy()
-                pos: 100, 100
-                size_hint: .07, .1
+                pos: 100, 120
+                size_hint: .09, .14
             Button:
                 text: '>'
                 id: jogright
                 on_press: root.jogright()
-                pos: 175, 100
-                size_hint: .07, .1
+                pos: 175, 120
+                size_hint: .09, .14
             Button:
                 text: 'v'
                 id: jogbackward
                 on_press: root.jogbackward()
-                pos: 100, 40
-                size_hint: .07, .1
+                pos: 100, 60
+                size_hint: .09, .14
             #Z axis buttons
             Label:
                 text: 'Z'
                 font_size: '35sp'
-                pos: -70, 20
+                pos: -65, 60
             Button:
                 size_hint_x: None
                 width: '25dp'
                 text: '^'
                 on_press: root.jogzup()
-                pos: 300, 160
-                size_hint: .07, .1
+                pos: 300, 180
+                size_hint: .09, .14
             Button:
                 text: 'H'
                 id: homez
                 on_press: root.homez()
-                pos: 300, 100
-                size_hint: .07, .1
+                pos: 300, 120
+                size_hint: .09, .14
             Button:
                 text: 'v'
                 id: jogzdown
                 on_press: root.jogzdown()
-                pos: 300, 40
-                size_hint: .07, .1
+                pos: 300, 60
+                size_hint: .09, .14
             #Connect Button
             Label:
                 id: printerstate2
@@ -318,38 +318,41 @@ Builder.load_string("""
                 on_press: root.disconnect()
                 pos: 650, 300
                 size_hint: .15, .09
+            #####################
+            # Jog increments
+            #####################
             ToggleButton:
                 text: '0.1'
                 id: joginc01
                 on_press: root.jogincrement(0.1)
                 group: 'jogincrement'
                 state: 'normal'
-                pos: 0, 0
-                size_hint: .05, .09
+                pos: 25, 0
+                size_hint: .1, .09
             ToggleButton:
                 text: '1'
                 id: joginc1
                 on_press: root.jogincrement(1)
                 group: 'jogincrement'
                 state: 'normal'
-                pos: 60, 0
-                size_hint: .05, .09
+                pos: 115, 0
+                size_hint: .1, .09
             ToggleButton:
                 text: '10'
                 id: joginc10
                 on_press: root.jogincrement(10)
                 group: 'jogincrement'
                 state: 'down'
-                pos: 120, 0
-                size_hint: .05, .09
+                pos: 205, 0
+                size_hint: .1, .09
             ToggleButton:
                 text: '100'
                 id: joginc100
                 on_press: root.jogincrement(100)
                 group: 'jogincrement'
                 state: 'normal'
-                pos: 180, 0
-                size_hint: .05, .09
+                pos: 295, 0
+                size_hint: .1, .09
 
 
 
@@ -372,6 +375,11 @@ Builder.load_string("""
                 on_value: bedslider.value = int(self.value)
                 size_hint: .80, .15
                 pos: 160, 295
+            ProgressBar:
+                id: bedpb
+                size_hint: .76, .15
+                pos: 176, 265
+                value: 0
             Label:
                 text: 'Selected Bed Target: ' + str(bedslider.value) + u"\u00b0" + ' C'
                 font_size: '20sp'
@@ -393,12 +401,12 @@ Builder.load_string("""
                 id: tab3_bed_actual
                 text: 'Bed Actual: ' + bed_actual.text
                 font_size: '16sp'
-                pos: -60, 80
+                pos: -60, 75
             Label:
                 id: tab3_bed_target
                 text: 'Bed Target: ' + bed_target.text
                 font_size: '16sp'
-                pos: 200, 80
+                pos: 200, 75
 
            ####################
             #Hot end temp slider
@@ -499,7 +507,7 @@ class Panels(TabbedPanel):
                 self.ids.tab3_hotend_target.color = [1, 1, 1, 1]
 
             self.ids.hotendpb.value = (hotendactual / self.ids.hotendslider.max) * 100
-
+            self.ids.bedpb.value = (bedactual / self.ids.bedslider.max) * 100
 
             self.ids.bed_actual.text = str(bedactual) + u"\u00b0" + ' C'
             self.ids.hotend_actual.text = str(hotendactual)  + u"\u00b0" + ' C'
