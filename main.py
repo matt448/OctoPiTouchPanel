@@ -14,6 +14,7 @@ from kivy.garden.graph import Graph, MeshLinePlot, SmoothLinePlot
 
 #other imports
 import time
+import os
 from math import sin, cos
 import requests
 import json
@@ -450,6 +451,19 @@ Builder.load_string("""
                 text: 'Hot End Target: ' + hotend_target.text
                 font_size: '16sp'
                 pos: 200, -100
+    ##############
+    # Tab4
+    ##############
+    TabbedPanelItem:
+        text: 'OS Utils'
+        font_size: '20sp'
+        FloatLayout:
+            Button:
+                id: restartOS
+                text: 'Reboot'
+                on_press: root.restartOS()
+                size_hint: .18, .12
+                pos: 10, 95
 
 
 """)#End of kv syntax
@@ -759,6 +773,15 @@ class Panels(TabbedPanel):
             self.ids.ipaddr.text = output
         else:
             self.ids.ipaddr.text = 'Unknown Platform'
+
+    def restartOS(self, *args):
+        global platform
+        if 'linux' in platform or 'Linux' in platform:
+            print '[RESTART] Restarting the OS'
+            cmd = "sudo shutdown now -r"
+            os.system(cmd)
+        else:
+            print '[RESTART] Unsupported OS'
     
     def graphpoints(self, *args):
         hotendactual_plot = SmoothLinePlot(color=[1, 0, 0, 1])
@@ -795,7 +818,7 @@ class TabbedPanelApp(App):
     def build(self):
         Window.size = (800, 480)
         panels = Panels()
-        Clock.schedule_once(panels.gettemps, 0.5) #Update bed and hotend temps every 5 seconds
+        Clock.schedule_once(panels.gettemps, 0.5) #Update bed and hotend at startup
         Clock.schedule_interval(panels.gettemps, 5) #Update bed and hotend temps every 5 seconds
 
         Clock.schedule_interval(panels.getstats, 5) #Update job stats every 5 seconds
@@ -803,8 +826,7 @@ class TabbedPanelApp(App):
         Clock.schedule_once(panels.updateipaddr, 0.5) #Update IP addr once right away
         Clock.schedule_interval(panels.updateipaddr, 30) #Then update IP every 30 seconds
 
-        Clock.schedule_interval(panels.graphpoints, 10) #Update IP addr once right away
-        #return Panels()
+        Clock.schedule_interval(panels.graphpoints, 10) #Update graphs
         return panels
 
 
