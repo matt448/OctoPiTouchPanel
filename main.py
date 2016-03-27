@@ -54,6 +54,7 @@ settings.read('octoprint.cfg')
 host = settings.get('APISettings', 'host')
 nicname = settings.get('APISettings', 'nicname')
 apikey = settings.get('APISettings', 'apikey')
+debug = int(settings.get('Debug', 'debug_enabled'))
 
 # Define Octoprint constants
 httptimeout = 3  #http request timeout in seconds
@@ -64,7 +65,10 @@ toolurl = 'http://'+ host + '/api/printer/tool'
 jobapiurl = 'http://' + host + '/api/job'
 connectionurl = 'http://' + host + '/api/connection'
 headers = {'X-Api-Key': apikey, 'content-type': 'application/json'}
-print headers
+
+if debug:
+    print "*********** DEBUG ENABLED ************"
+    print headers
 
 bed_temp_val = 0.0
 hotend_temp_val = 0.0
@@ -472,23 +476,28 @@ Builder.load_string("""
 class Panels(TabbedPanel):
     def gettemps(self, *args):
         try:
-            print '[GET TEMPS] Trying /printer API request to Octoprint...'
+            if debug:
+                print '[GET TEMPS] Trying /printer API request to Octoprint...'
             r = requests.get(printerapiurl, headers=headers, timeout=httptimeout)
-            print '[GET TEMPS] STATUS CODE: ' + str(r.status_code)
+            if debug:
+                print '[GET TEMPS] STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
-            print '[GET TEMPS] ERROR: Couldn\'t contact Octoprint /printer API'
-            print e
             r = False
+            if debug:
+                print '[GET TEMPS] ERROR: Couldn\'t contact Octoprint /printer API'
+                print e
         if r and r.status_code == 200:
-            print '[GET TEMPS] JSON Data: ' + str(r.json())
+            if debug:
+                print '[GET TEMPS] JSON Data: ' + str(r.json())
         if r and r.status_code == 200 and 'tool0' in r.json()['temperature']:
             printeronline = True 
             hotendactual = r.json()['temperature']['tool0']['actual']
             hotendtarget = r.json()['temperature']['tool0']['target']
             bedactual = r.json()['temperature']['bed']['actual']
             bedtarget = r.json()['temperature']['bed']['target']
-            print bedactual
-            print hotendactual
+            if debug:
+                print bedactual
+                print hotendactual
             
             hotendactual_list.popleft()
             hotendactual_list.append(hotendactual)
@@ -545,134 +554,168 @@ class Panels(TabbedPanel):
     def homez(self, *args):
         homezdata = {'command': 'home', 'axes': ['z']}
         try:
-            print '[HOME Z] Trying /API request to Octoprint...'
+            if debug:
+                print '[HOME Z] Trying /API request to Octoprint...'
             r = requests.post(printheadurl, headers=headers, json=homezdata, timeout=httptimeout)
-            print '[HOME Z] STATUS CODE: ' + str(r.status_code)
+            if debug:
+                print '[HOME Z] STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
-            print 'ERROR: Couldn\'t contact Octoprint /job API'
-            print e
             r = False
+            if debug:
+                print 'ERROR: Couldn\'t contact Octoprint /job API'
+                print e
 
     def jogzup(self, *args):
         jogzupdata = {'command': 'jog', 'z': jogincrement}
         try:
-            print '[JOG Z UP] Trying /API request to Octoprint...'
+            if debug:
+                print '[JOG Z UP] Trying /API request to Octoprint...'
             r = requests.post(printheadurl, headers=headers, json=jogzupdata, timeout=httptimeout)
-            print 'STATUS CODE: ' + str(r.status_code)
+            if debug:
+                print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
-            print 'ERROR: Couldn\'t contact Octoprint /job API'
-            print e
             r = False
+            if debug:
+                print 'ERROR: Couldn\'t contact Octoprint /job API'
+                print e
 
     def jogzdown(self, *args):
         jogzdowndata = {'command': 'jog', 'z': (jogincrement * -1)}
         try:
-            print '[JOG Z UP] Trying /API request to Octoprint...'
+            if debug:
+                print '[JOG Z UP] Trying /API request to Octoprint...'
             r = requests.post(printheadurl, headers=headers, json=jogzdowndata, timeout=httptimeout)
-            print 'STATUS CODE: ' + str(r.status_code)
+            if debug:
+                print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
-            print 'ERROR: Couldn\'t contact Octoprint /job API'
-            print e
             r = False
+            if debug:
+                print 'ERROR: Couldn\'t contact Octoprint /job API'
+                print e
 
     def homexy(self, *args):
         homexydata = {'command': 'home', 'axes': ['x', 'y']}
         try:
-            print '[HOME X/Y] Trying /API request to Octoprint...'
+            if debug:
+                print '[HOME X/Y] Trying /API request to Octoprint...'
             r = requests.post(printheadurl, headers=headers, json=homexydata, timeout=httptimeout)
-            print 'STATUS CODE: ' + str(r.status_code)
+            if debug:
+                print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
-            print 'ERROR: Couldn\'t contact Octoprint /job API'
-            print e
             r = False
+            if debug:
+                print 'ERROR: Couldn\'t contact Octoprint /job API'
+                print e
 
     def jogleft(self, *args):
         jogleftdata = {'command': 'jog', 'x': jogincrement}
         try:
-            print '[JOG LEFT] Trying /API request to Octoprint...'
-            print '[JOG LEFT] Data: ' + str(jogleftdata)
+            if debug:
+                print '[JOG LEFT] Trying /API request to Octoprint...'
+                print '[JOG LEFT] Data: ' + str(jogleftdata)
             r = requests.post(printheadurl, headers=headers, json=jogleftdata, timeout=httptimeout)
-            print 'STATUS CODE: ' + str(r.status_code)
+            if debug:
+                print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
-            print 'ERROR: Couldn\'t contact Octoprint /job API'
-            print e
             r = False
+            if debug:
+                print 'ERROR: Couldn\'t contact Octoprint /job API'
+                print e
 
     def jogright(self, *args):
         jogrightdata = {'command': 'jog', 'x': (jogincrement * -1)}
         try:
-            print '[JOG RIGHT] Trying /API request to Octoprint...'
-            print '[JOG RIGHT] Data: ' + str(jogrightdata)
+            if debug:
+                print '[JOG RIGHT] Trying /API request to Octoprint...'
+                print '[JOG RIGHT] Data: ' + str(jogrightdata)
             r = requests.post(printheadurl, headers=headers, json=jogrightdata, timeout=httptimeout)
-            print 'STATUS CODE: ' + str(r.status_code)
+            if debug:
+                print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
-            print 'ERROR: Couldn\'t contact Octoprint /job API'
-            print e
             r = False
+            if debug:
+                print 'ERROR: Couldn\'t contact Octoprint /job API'
+                print e
 
     def jogforward(self, *args):
         jogforwarddata = {'command': 'jog', 'y': jogincrement}
         try:
-            print '[JOG FORWARD] Trying /API request to Octoprint...'
+            if debug:
+                print '[JOG FORWARD] Trying /API request to Octoprint...'
             r = requests.post(printheadurl, headers=headers, json=jogforwarddata, timeout=httptimeout)
-            print 'STATUS CODE: ' + str(r.status_code)
+            if debug:
+                print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
-            print 'ERROR: Couldn\'t contact Octoprint /job API'
-            print e
             r = False
+            if debug:
+                print 'ERROR: Couldn\'t contact Octoprint /job API'
+                print e
 
     def jogbackward(self, *args):
         jogbackwarddata = {'command': 'jog', 'y': (jogincrement * -1)}
         try:
-            print '[JOG BACKWARD] Trying /API request to Octoprint...'
+            if debug:
+                print '[JOG BACKWARD] Trying /API request to Octoprint...'
             r = requests.post(printheadurl, headers=headers, json=jogbackwarddata, timeout=httptimeout)
-            print 'STATUS CODE: ' + str(r.status_code)
+            if debug:
+                print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
-            print 'ERROR: Couldn\'t contact Octoprint /job API'
-            print e
             r = False
+            if debug:
+                print 'ERROR: Couldn\'t contact Octoprint /job API'
+                print e
 
     def jogincrement(self, *args):
         global jogincrement
-        print '[JOG INCREMENT] Button pressed'
-        print '[JOG INCREMENT] INC: ' + str(args[0])
+        if debug:
+            print '[JOG INCREMENT] Button pressed'
+            print '[JOG INCREMENT] INC: ' + str(args[0])
         jogincrement = args[0]
 
     def connect(self, *args):
         connectiondata = {'command': 'connect', 'port': '/dev/ttyACM0', 'baudrate': 250000, \
                 'save': False, 'autoconnect': False}
         try:
-            print '[CONNECT] Trying /job API request to Octoprint...'
-            print '[CONNECT] ' + connectionurl + str(connectiondata)
+            if debug:
+                print '[CONNECT] Trying /job API request to Octoprint...'
+                print '[CONNECT] ' + connectionurl + str(connectiondata)
             r = requests.post(connectionurl, headers=headers, json=connectiondata, timeout=httptimeout)
-            print '[CONNECT] STATUS CODE: ' + str(r.status_code)
-            print '[CONNECT] RESPONSE: ' + r.text
+            if debug:
+                print '[CONNECT] STATUS CODE: ' + str(r.status_code)
+                print '[CONNECT] RESPONSE: ' + r.text
         except requests.exceptions.RequestException as e:
-            print '[CONNECT] ERROR: Couldn\'t contact Octoprint /job API'
-            print e
             r = False
+            if debug:
+                print '[CONNECT] ERROR: Couldn\'t contact Octoprint /job API'
+                print e
 
     def disconnect(self, *args):
         disconnectdata = {'command': 'disconnect'}
         try:
-            print '[DISCONNECT] Trying /job API request to Octoprint...'
-            print '[DISCONNECT] ' + connectionurl + str(disconnectdata)
+            if debug:
+                print '[DISCONNECT] Trying /job API request to Octoprint...'
+                print '[DISCONNECT] ' + connectionurl + str(disconnectdata)
             r = requests.post(connectionurl, headers=headers, json=disconnectdata, timeout=httptimeout)
-            print '[DISCONNECT] STATUS CODE: ' + str(r.status_code)
-            print '[DISCONNECT] RESPONSE: ' + r.text
+            if debug:
+                print '[DISCONNECT] STATUS CODE: ' + str(r.status_code)
+                print '[DISCONNECT] RESPONSE: ' + r.text
         except requests.exceptions.RequestException as e:
-            print '[DISCONNECT] ERROR: Couldn\'t contact Octoprint /job API'
-            print e
             r = False
+            if debug:
+                print '[DISCONNECT] ERROR: Couldn\'t contact Octoprint /job API'
+                print e
  
     def setbedtarget(self, *args):
         bedsliderval = args[0]
         bedtargetdata = {'command': 'target', 'target': bedsliderval}
-        print '[BED TARGET] New Value: ' + str(bedsliderval) + ' C'
+        if debug:
+            print '[BED TARGET] New Value: ' + str(bedsliderval) + ' C'
         try:
-            print '[BED TARGET] Trying /API request to Octoprint...'
+            if debug:
+                print '[BED TARGET] Trying /API request to Octoprint...'
             r = requests.post(bedurl, headers=headers, json=bedtargetdata, timeout=httptimeout)
-            print '[BED TARGET] STATUS CODE: ' + str(r.status_code)
+            if debug:
+                print '[BED TARGET] STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
             print '[BED TARGET] ERROR: Couldn\'t contact Octoprint /job API'
             print e
@@ -681,37 +724,42 @@ class Panels(TabbedPanel):
     def sethotendtarget(self, *args):
         hotendsliderval = args[0]
         hotendtargetdata = {'command': 'target', 'targets': {'tool0': hotendsliderval}}
-        print '[HOTEND TARGET] New Value: ' + str(hotendsliderval) + ' C'
+        if debug:
+            print '[HOTEND TARGET] New Value: ' + str(hotendsliderval) + ' C'
         try:
-            print '[HOTEND TARGET] Trying /API request to Octoprint...'
+            if debug:
+                print '[HOTEND TARGET] Trying /API request to Octoprint...'
             r = requests.post(toolurl, headers=headers, json=hotendtargetdata, timeout=httptimeout)
-            print '[HOTEND TARGET] STATUS CODE: ' + str(r.status_code)
+            if debug:
+                print '[HOTEND TARGET] STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
-            print '[HOTEND TARGET] ERROR: Couldn\'t contact Octoprint /job API'
-            print e
             r = False
-
-
-
+            if debug:
+                print '[HOTEND TARGET] ERROR: Couldn\'t contact Octoprint /job API'
+                print e
 
 
     def getstats(self, *args):
         try:
-            print '[GET STATS] Trying /job API request to Octoprint...'
+            if debug:
+                print '[GET STATS] Trying /job API request to Octoprint...'
             r = requests.get(jobapiurl, headers=headers, timeout=1)
         except requests.exceptions.RequestException as e:
-            print '[GET STATS] ERROR: Couldn\'t contact Octoprint /job API'
-            print e
             r = False
+            if debug:
+                print '[GET STATS] ERROR: Couldn\'t contact Octoprint /job API'
+                print e
         if r and r.status_code == 200:
-            print '[GET STATS] JSON Data: ' + str(r.json())
+            if debug:
+                print '[GET STATS] JSON Data: ' + str(r.json())
             printerstate = r.json()['state']
             jobfilename = r.json()['job']['file']['name']
             jobpercent = r.json()['progress']['completion']
             jobprinttime = r.json()['progress']['printTime']
             jobprinttimeleft = r.json()['progress']['printTimeLeft']
-            print '[GET STATS] Printer state: ' + printerstate
-            print '[GET STATS] Job percent: ' + str(jobpercent) + '%'
+            if debug:
+                print '[GET STATS] Printer state: ' + printerstate
+                print '[GET STATS] Job percent: ' + str(jobpercent) + '%'
             if jobfilename is not None:
                 jobfilename = jobfilename[:25] #Shorten filename to 25 characters
                 self.ids.jobfilename.text = jobfilename

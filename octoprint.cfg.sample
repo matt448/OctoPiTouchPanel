@@ -2,3 +2,8 @@
 host: 192.168.1.xx
 apikey: PUTYOUROCTOPRINTAPIKEYHERE 
 nicname: eth0
+
+[Debug]
+#0 = Debug output disabled
+#1 = Debug output enabled
+debug_enabled: 0
