@@ -247,61 +247,61 @@ Builder.load_string("""
             Label:
                 text: 'X/Y'
                 font_size: '35sp'
-                pos: -265, 60
+                pos: -265, 95
             Button:
                 text: '^'
                 id: jogforward
                 on_press: root.jogforward()
-                pos: 100, 180
-                size_hint: .09, .14
+                pos: 100, 200
+                size_hint: .10, .15
             Button:
                 text: '<'
                 id:jogleft
                 on_press: root.jogleft()
-                pos: 25, 120
-                size_hint: .09, .14
+                pos: 10, 130
+                size_hint: .10, .15
             Button:
                 text: 'H'
                 id: homexy
                 on_press: root.homexy()
-                pos: 100, 120
-                size_hint: .09, .14
+                pos: 100, 130
+                size_hint: .10, .15
             Button:
                 text: '>'
                 id: jogright
                 on_press: root.jogright()
-                pos: 175, 120
-                size_hint: .09, .14
+                pos: 190, 130
+                size_hint: .10, .15
             Button:
                 text: 'v'
                 id: jogbackward
                 on_press: root.jogbackward()
                 pos: 100, 60
-                size_hint: .09, .14
+                size_hint: .10, .15
             #Z axis buttons
             Label:
                 text: 'Z'
                 font_size: '35sp'
-                pos: -65, 60
+                pos: -65, 95
             Button:
                 size_hint_x: None
                 width: '25dp'
                 text: '^'
                 on_press: root.jogzup()
-                pos: 300, 180
-                size_hint: .09, .14
+                pos: 300, 200
+                size_hint: .10, .15
             Button:
                 text: 'H'
                 id: homez
                 on_press: root.homez()
-                pos: 300, 120
-                size_hint: .09, .14
+                pos: 300, 130
+                size_hint: .10, .15
             Button:
                 text: 'v'
                 id: jogzdown
                 on_press: root.jogzdown()
                 pos: 300, 60
-                size_hint: .09, .14
+                size_hint: .10, .15
             #Connect Button
             Label:
                 id: printerstate2
@@ -311,14 +311,14 @@ Builder.load_string("""
                 text: 'Connect'
                 id: connect
                 on_press: root.connect()
-                pos: 650, 350
-                size_hint: .15, .08
+                pos: 650, 345
+                size_hint: .15, .10
             Button:
                 text: 'Disconnect'
                 id: connect
                 on_press: root.disconnect()
-                pos: 650, 300
-                size_hint: .15, .09
+                pos: 650, 295
+                size_hint: .15, .10
             #####################
             # Jog increments
             #####################
@@ -328,7 +328,7 @@ Builder.load_string("""
                 on_press: root.jogincrement(0.1)
                 group: 'jogincrement'
                 state: 'normal'
-                pos: 25, 0
+                pos: 10, 0
                 size_hint: .1, .09
             ToggleButton:
                 text: '1'
@@ -336,7 +336,7 @@ Builder.load_string("""
                 on_press: root.jogincrement(1)
                 group: 'jogincrement'
                 state: 'normal'
-                pos: 115, 0
+                pos: 105, 0
                 size_hint: .1, .09
             ToggleButton:
                 text: '10'
@@ -344,7 +344,7 @@ Builder.load_string("""
                 on_press: root.jogincrement(10)
                 group: 'jogincrement'
                 state: 'down'
-                pos: 205, 0
+                pos: 200, 0
                 size_hint: .1, .09
             ToggleButton:
                 text: '100'
@@ -352,7 +352,7 @@ Builder.load_string("""
                 on_press: root.jogincrement(100)
                 group: 'jogincrement'
                 state: 'normal'
-                pos: 295, 0
+                pos: 300, 0
                 size_hint: .1, .09
 
 
