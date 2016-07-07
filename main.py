@@ -57,6 +57,9 @@ apikey = settings.get('APISettings', 'apikey')
 debug = int(settings.get('Debug', 'debug_enabled'))
 hotend_max = int(settings.get('MaxTemps', 'hotend_max'))
 bed_max = int(settings.get('MaxTemps', 'bed_max'))
+invert_X = int(settings.get('AxisInvert', 'invert_X'))
+invert_Y = int(settings.get('AxisInvert', 'invert_Y'))
+invert_Z = int(settings.get('AxisInvert', 'invert_Z'))
 
 # Define Octoprint constants
 httptimeout = 3  #http request timeout in seconds
@@ -572,7 +575,11 @@ class Panels(TabbedPanel):
                 print e
 
     def jogzup(self, *args):
-        jogzupdata = {'command': 'jog', 'z': jogincrement}
+        global invert_Z
+        if invert_Z:
+            jogzupdata = {'command': 'jog', 'z': (jogincrement * -1)}
+        else:
+            jogzupdata = {'command': 'jog', 'z': jogincrement}
         try:
             if debug:
                 print '[JOG Z UP] Trying /API request to Octoprint...'
@@ -586,7 +593,11 @@ class Panels(TabbedPanel):
                 print e
 
     def jogzdown(self, *args):
-        jogzdowndata = {'command': 'jog', 'z': (jogincrement * -1)}
+        global invert_Z
+        if invert_Z:
+            jogzdowndata = {'command': 'jog', 'z': jogincrement}
+        else:
+            jogzdowndata = {'command': 'jog', 'z': (jogincrement * -1)}
         try:
             if debug:
                 print '[JOG Z UP] Trying /API request to Octoprint...'
@@ -614,7 +625,11 @@ class Panels(TabbedPanel):
                 print e
 
     def jogleft(self, *args):
-        jogleftdata = {'command': 'jog', 'x': jogincrement}
+        global invert_X
+        if invert_X:
+            jogleftdata = {'command': 'jog', 'x': (jogincrement * -1)}
+        else:
+            jogleftdata = {'command': 'jog', 'x': jogincrement}
         try:
             if debug:
                 print '[JOG LEFT] Trying /API request to Octoprint...'
@@ -629,7 +644,11 @@ class Panels(TabbedPanel):
                 print e
 
     def jogright(self, *args):
-        jogrightdata = {'command': 'jog', 'x': (jogincrement * -1)}
+        global invert_X
+        if invert_X:
+            jogrightdata = {'command': 'jog', 'x': jogincrement}
+        else:
+            jogrightdata = {'command': 'jog', 'x': (jogincrement * -1)}
         try:
             if debug:
                 print '[JOG RIGHT] Trying /API request to Octoprint...'
@@ -644,7 +663,11 @@ class Panels(TabbedPanel):
                 print e
 
     def jogforward(self, *args):
-        jogforwarddata = {'command': 'jog', 'y': jogincrement}
+        global invert_Y
+        if invert_Y:
+            jogforwarddata = {'command': 'jog', 'y': (jogincrement * -1)}
+        else:
+            jogforwarddata = {'command': 'jog', 'y': jogincrement}
         try:
             if debug:
                 print '[JOG FORWARD] Trying /API request to Octoprint...'
@@ -658,7 +681,11 @@ class Panels(TabbedPanel):
                 print e
 
     def jogbackward(self, *args):
-        jogbackwarddata = {'command': 'jog', 'y': (jogincrement * -1)}
+        global invert_Y
+        if invert_Y:
+            jogbackwarddata = {'command': 'jog', 'y': jogincrement}
+        else:
+            jogbackwarddata = {'command': 'jog', 'y': (jogincrement * -1)}
         try:
             if debug:
                 print '[JOG BACKWARD] Trying /API request to Octoprint...'
