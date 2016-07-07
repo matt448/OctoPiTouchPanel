@@ -534,7 +534,7 @@ class Panels(TabbedPanel):
                 self.ids.tab3_hotend_target.color = [1, 0, 0, 1]
             else:
                 self.ids.tab3_hotend_target.color = [1, 1, 1, 1]
-            
+
             self.ids.hotendpb.value = (hotendactual / self.ids.hotendslider.max) * 100
             self.ids.bedpb.value = (bedactual / self.ids.bedslider.max) * 100
 
