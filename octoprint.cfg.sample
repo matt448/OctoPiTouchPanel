@@ -13,3 +13,11 @@ debug_enabled: 0
 #that set the hot end and bed temps.
 hotend_max: 300
 bed_max: 100
+
+[AxisInvert]
+#Enable if the jog buttons move the wrong direction.
+#0 = disable axis invert
+#1 = enable axis invert
+invert_X: 0
+invert_Y: 0
+invert_Z: 0
