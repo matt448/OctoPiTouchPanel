@@ -7,3 +7,9 @@ nicname: eth0
 #0 = Debug output disabled
 #1 = Debug output enabled
 debug_enabled: 0
+
+[MaxTemps]
+#This is the max temp in celsius for the sliders
+#that set the hot end and bed temps.
+hotend_max: 300
+bed_max: 100
