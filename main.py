@@ -55,6 +55,8 @@ host = settings.get('APISettings', 'host')
 nicname = settings.get('APISettings', 'nicname')
 apikey = settings.get('APISettings', 'apikey')
 debug = int(settings.get('Debug', 'debug_enabled'))
+hotend_max = int(settings.get('MaxTemps', 'hotend_max'))
+bed_max = int(settings.get('MaxTemps', 'bed_max'))
 
 # Define Octoprint constants
 httptimeout = 3  #http request timeout in seconds
@@ -413,7 +415,7 @@ Builder.load_string("""
                 font_size: '16sp'
                 pos: 200, 75
 
-           ####################
+            ####################
             #Hot end temp slider
             ####################
             Slider:
@@ -474,7 +476,11 @@ Builder.load_string("""
 
 
 class Panels(TabbedPanel):
+    global bed_max
+    global hotend_max
     def gettemps(self, *args):
+        self.ids.hotendslider.max = hotend_max
+        self.ids.bedslider.max = bed_max
         try:
             if debug:
                 print '[GET TEMPS] Trying /printer API request to Octoprint...'
@@ -528,7 +534,7 @@ class Panels(TabbedPanel):
                 self.ids.tab3_hotend_target.color = [1, 0, 0, 1]
             else:
                 self.ids.tab3_hotend_target.color = [1, 1, 1, 1]
-
+            
             self.ids.hotendpb.value = (hotendactual / self.ids.hotendslider.max) * 100
             self.ids.bedpb.value = (bedactual / self.ids.bedslider.max) * 100
 
