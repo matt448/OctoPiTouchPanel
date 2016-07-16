@@ -500,6 +500,22 @@ Builder.load_string("""
         text: 'Job'
         font_size: '20sp'
         FloatLayout:
+            GridLayout:
+                cols: 2
+                pos: 20, 180
+                size_hint: .75, 1
+                Label:
+                    text: 'Loaded File:'
+                    text_size: self.size
+                    size_hint: .2, 1
+                    halign: 'left'
+                    valign: 'middle'
+                Label:
+                    id: jobfilenamefull
+                    text: 'N/A'
+                    text_size: self.size
+                    halign: 'left'
+                    valign: 'middle'
             Button:
                 id: printbutton
                 text: 'Print'
@@ -952,8 +968,10 @@ class Panels(TabbedPanel):
                 print '[GET STATS] Printer state: ' + printerstate
                 print '[GET STATS] Job percent: ' + str(jobpercent) + '%'
             if jobfilename is not None:
+                jobfilenamefull = jobfilename
                 jobfilename = jobfilename[:25] #Shorten filename to 25 characters
                 self.ids.jobfilename.text = jobfilename
+                self.ids.jobfilenamefull.text = jobfilenamefull
             else:
                 self.ids.jobfilename.text = '-'
             if printerstate is not None:
