@@ -511,6 +511,13 @@ Builder.load_string("""
                 on_press: root.restartOS()
                 size_hint: .18, .12
                 pos: 10, 95
+            Button:
+                id: exitApp
+                text: 'Exit'
+                on_press: root.exitapp()
+                size_hint: .18, .12
+                pos: 10, 195
+
 
 
 """)#End of kv syntax
@@ -942,6 +949,9 @@ class Panels(TabbedPanel):
             os.system(cmd)
         else:
             print '[RESTART] Unsupported OS'
+
+    def exitapp(self, *args):
+        exit()
     
     def graphpoints(self, *args):
         hotendactual_plot = SmoothLinePlot(color=[1, 0, 0, 1])
