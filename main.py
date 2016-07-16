@@ -503,16 +503,19 @@ Builder.load_string("""
             Button:
                 id: printbutton
                 text: 'Print'
+                on_press: root.jobcontrol('start')
                 size_hint: .18, .18
                 pos: 20, 220
             Button:
                 id: pausebutton
                 text: 'Pause'
+                on_press: root.jobcontrol('pause')
                 size_hint: .18, .18
                 pos: 20, 120
             Button:
                 id: cancelbutton
                 text: 'Cancel'
+                on_press: root.jobcontrol('cancel')
                 size_hint: .18, .18
                 pos: 20, 20
 
@@ -625,6 +628,12 @@ class Panels(TabbedPanel):
             else:
                 self.ids.extrude.disabled = False
                 self.ids.retract.disabled = False
+
+            #Set pause/resume label on pause button
+            if paused:
+                self.ids.pausebutton.text = 'Resume'
+            else:
+                self.ids.pausebutton.text = 'Pause'
 
 
             #Set position of slider pointer
@@ -883,6 +892,23 @@ class Panels(TabbedPanel):
                 print '[EXTRUDE FILAMENT] ERROR: Couldn\'t contact Octoprint /job API'
                 print e
 
+    def jobcontrol(self, *args):
+        jobcommand = args[0]
+        jobdata = {'command': jobcommand}
+        if debug:
+            print '[JOB COMMAND] Command: ' + str(jobcommand)
+        try:
+            if debug:
+                print '[JOB COMMAND] Trying /API request to Octoprint...'
+            r = requests.post(jobapiurl, headers=headers, json=jobdata, timeout=httptimeout)
+            if debug:
+                print '[JOB COMMAND] STATUS CODE: ' + str(r.status_code)
+        except requests.exceptions.RequestException as e:
+            r = False
+            if debug:
+                print '[JOB COMMAND] ERROR: Couldn\'t contact Octoprint /job API'
+                print e
+
 
     def getstats(self, *args):
         try:
@@ -978,6 +1004,7 @@ class Panels(TabbedPanel):
 
     def exitapp(self, *args):
         exit()
+
     def restartnetworking(self, *args):
         global platform
         global nicname #Network card name from config file
