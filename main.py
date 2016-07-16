@@ -517,6 +517,13 @@ Builder.load_string("""
                 on_press: root.exitapp()
                 size_hint: .18, .12
                 pos: 10, 195
+            Button:
+                id: restartNetworking
+                text: 'Restart Networking'
+                on_press: root.restartnetworking()
+                size_hint: .18, .12
+                pos: 210, 195
+
 
 
 
@@ -952,6 +959,25 @@ class Panels(TabbedPanel):
 
     def exitapp(self, *args):
         exit()
+    def restartnetworking(self, *args):
+        global platform
+        global nicname #Network card name from config file
+        if 'linux' in platform or 'Linux' in platform:
+            cmd = "sudo ifdown " + nicname
+            p = Popen(cmd, shell=True, stdout=PIPE)
+            output = p.communicate()[0]
+            if debug:
+                print '[RESTART NETWORK]: ' + output
+            cmd = "sudo ifup " + nicname
+            p = Popen(cmd, shell=True, stdout=PIPE)
+            output = p.communicate()[0]
+            if debug:
+                print '[RESTART NETWORK]: ' + output
+        else:
+            if debug:
+                print 'Unknown Platform. Not restarting network interface'
+
+
     
     def graphpoints(self, *args):
         hotendactual_plot = SmoothLinePlot(color=[1, 0, 0, 1])
