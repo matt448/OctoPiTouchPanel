@@ -375,13 +375,31 @@ Builder.load_string("""
             ######################
             # Extrude/Retract
             ######################
+            Spinner:
+                id: extrudeamount
+                text: '5'
+                values: '1', '5', '10', '20', '100'
+                pos: 450, 0
+                size_hint: .15, .09
+            Label:
+                text: 'mm'
+                pos: 138, -189
             Button:
                 text: 'Extrude'
                 id: extrude
                 disabled: False
-                on_press: root.extrudefilament()
-                pos: 550, 195
-                size_hint: .15, .10
+                on_press: root.extrudefilament(1)
+                pos: 450, 60
+                size_hint: .15, .15
+            Button:
+                text: 'Retract'
+                id: retract
+                disabled: False
+                on_press: root.extrudefilament(-1)
+                pos: 450, 130
+                size_hint: .15, .15
+
+
 
 
 
@@ -570,8 +588,10 @@ class Panels(TabbedPanel):
             #Enable/Disable extruder buttons
             if hotendactual < 130 or printing or paused:
                 self.ids.extrude.disabled = True
+                self.ids.retract.disabled = True
             else:
                 self.ids.extrude.disabled = False
+                self.ids.retract.disabled = False
 
 
             #Set position of slider pointer
@@ -811,7 +831,10 @@ class Panels(TabbedPanel):
                 print e
 
     def extrudefilament(self, *args):
-        extrudeamount = jogincrement
+        posneg = args[0]
+        extrudeamount = (int(self.ids.extrudeamount.text) * posneg)
+        if debug:
+            print '[EXTRUDE FILAMENT] Amount: ' + str(extrudeamount)
         extrudedata = {'command': 'extrude', 'amount': extrudeamount}
         if debug:
             print '[EXTRUDE FILAMENT] Extruding: ' + str(extrudeamount) + ' mm'
