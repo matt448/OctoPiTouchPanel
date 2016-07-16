@@ -260,30 +260,35 @@ Builder.load_string("""
             Button:
                 text: '^'
                 id: jogforward
+                disabled: False
                 on_press: root.jogforward()
                 pos: 100, 200
                 size_hint: .10, .15
             Button:
                 text: '<'
                 id:jogleft
+                disabled: False
                 on_press: root.jogleft()
                 pos: 10, 130
                 size_hint: .10, .15
             Button:
                 text: 'H'
                 id: homexy
+                disabled: False
                 on_press: root.homexy()
                 pos: 100, 130
                 size_hint: .10, .15
             Button:
                 text: '>'
                 id: jogright
+                disabled: False
                 on_press: root.jogright()
                 pos: 190, 130
                 size_hint: .10, .15
             Button:
                 text: 'v'
                 id: jogbackward
+                disabled: False
                 on_press: root.jogbackward()
                 pos: 100, 60
                 size_hint: .10, .15
@@ -295,6 +300,8 @@ Builder.load_string("""
             Button:
                 size_hint_x: None
                 width: '25dp'
+                id: jogzup
+                disabled: False
                 text: '^'
                 on_press: root.jogzup()
                 pos: 300, 200
@@ -302,12 +309,14 @@ Builder.load_string("""
             Button:
                 text: 'H'
                 id: homez
+                disabled: False
                 on_press: root.homez()
                 pos: 300, 130
                 size_hint: .10, .15
             Button:
                 text: 'v'
                 id: jogzdown
+                disabled: False
                 on_press: root.jogzdown()
                 pos: 300, 60
                 size_hint: .10, .15
@@ -363,6 +372,35 @@ Builder.load_string("""
                 state: 'normal'
                 pos: 300, 0
                 size_hint: .1, .09
+            ######################
+            # Extrude/Retract
+            ######################
+            Spinner:
+                id: extrudeamount
+                text: '5'
+                values: '1', '5', '10', '20', '100'
+                pos: 450, 0
+                size_hint: .15, .09
+            Label:
+                text: 'mm'
+                pos: 138, -189
+            Button:
+                text: 'Extrude'
+                id: extrude
+                disabled: False
+                on_press: root.extrudefilament(1)
+                pos: 450, 60
+                size_hint: .15, .15
+            Button:
+                text: 'Retract'
+                id: retract
+                disabled: False
+                on_press: root.extrudefilament(-1)
+                pos: 450, 130
+                size_hint: .15, .15
+
+
+
 
 
 
@@ -481,6 +519,7 @@ Builder.load_string("""
 class Panels(TabbedPanel):
     global bed_max
     global hotend_max
+
     def gettemps(self, *args):
         self.ids.hotendslider.max = hotend_max
         self.ids.bedslider.max = bed_max
@@ -504,10 +543,18 @@ class Panels(TabbedPanel):
             hotendtarget = r.json()['temperature']['tool0']['target']
             bedactual = r.json()['temperature']['bed']['actual']
             bedtarget = r.json()['temperature']['bed']['target']
+            printing = r.json()['state']['flags']['printing']
+            paused = r.json()['state']['flags']['paused']
+            operational = r.json()['state']['flags']['operational']
+
             if debug:
-                print bedactual
-                print hotendactual
-            
+                print '   BED ACTUAL: ' + str(bedactual)
+                print 'HOTEND ACTUAL: ' + str(hotendactual)
+                print '     PRINTING: ' + str(printing)
+                print '       PAUSED: ' + str(paused)
+                print '  OPERATIONAL: ' + str(operational)
+
+            #Update tempurature arrays with new data
             hotendactual_list.popleft()
             hotendactual_list.append(hotendactual)
             hotendtarget_list.popleft()
@@ -538,9 +585,20 @@ class Panels(TabbedPanel):
             else:
                 self.ids.tab3_hotend_target.color = [1, 1, 1, 1]
 
+            #Enable/Disable extruder buttons
+            if hotendactual < 130 or printing or paused:
+                self.ids.extrude.disabled = True
+                self.ids.retract.disabled = True
+            else:
+                self.ids.extrude.disabled = False
+                self.ids.retract.disabled = False
+
+
+            #Set position of slider pointer
             self.ids.hotendpb.value = (hotendactual / self.ids.hotendslider.max) * 100
             self.ids.bedpb.value = (bedactual / self.ids.bedslider.max) * 100
 
+            #Update tempurature values with new data
             self.ids.bed_actual.text = str(bedactual) + u"\u00b0" + ' C'
             self.ids.hotend_actual.text = str(hotendactual)  + u"\u00b0" + ' C'
             if bedtarget > 0:
@@ -559,6 +617,7 @@ class Panels(TabbedPanel):
             self.ids.hotend_actual.text = 'N/A'
             self.ids.bed_target.text = 'N/A'
             self.ids.hotend_target.text = 'N/A'
+
 
     def homez(self, *args):
         homezdata = {'command': 'home', 'axes': ['z']}
@@ -769,6 +828,26 @@ class Panels(TabbedPanel):
             r = False
             if debug:
                 print '[HOTEND TARGET] ERROR: Couldn\'t contact Octoprint /job API'
+                print e
+
+    def extrudefilament(self, *args):
+        posneg = args[0]
+        extrudeamount = (int(self.ids.extrudeamount.text) * posneg)
+        if debug:
+            print '[EXTRUDE FILAMENT] Amount: ' + str(extrudeamount)
+        extrudedata = {'command': 'extrude', 'amount': extrudeamount}
+        if debug:
+            print '[EXTRUDE FILAMENT] Extruding: ' + str(extrudeamount) + ' mm'
+        try:
+            if debug:
+                print '[EXTRUDE FILAMENT] Trying /API request to Octoprint...'
+            r = requests.post(toolurl, headers=headers, json=extrudedata, timeout=httptimeout)
+            if debug:
+                print '[EXTRUDE FILAMENT] STATUS CODE: ' + str(r.status_code)
+        except requests.exceptions.RequestException as e:
+            r = False
+            if debug:
+                print '[EXTRUDE FILAMENT] ERROR: Couldn\'t contact Octoprint /job API'
                 print e
 
 
