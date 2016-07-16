@@ -400,16 +400,10 @@ Builder.load_string("""
                 size_hint: .15, .15
 
 
-
-
-
-
-
-    ##############        
-    # Tab3
-    ##############        
+    ###############################
+    # Tab3 - Temperature Controls
+    ###############################
     TabbedPanelItem:
-        ##NOTE: http://kivy.org/docs/examples/gen__camera__main__py.html
         text: 'Temps'
         font_size: '20sp'
         FloatLayout:
@@ -498,9 +492,34 @@ Builder.load_string("""
                 text: 'Hot End Target: ' + hotend_target.text
                 font_size: '16sp'
                 pos: 200, -100
-    ##############
-    # Tab4
-    ##############
+
+    #######################
+    # Tab4 - Job Controls
+    #######################
+    TabbedPanelItem:
+        text: 'Job'
+        font_size: '20sp'
+        FloatLayout:
+            Button:
+                id: printbutton
+                text: 'Print'
+                size_hint: .18, .18
+                pos: 20, 220
+            Button:
+                id: pausebutton
+                text: 'Pause'
+                size_hint: .18, .18
+                pos: 20, 120
+            Button:
+                id: cancelbutton
+                text: 'Cancel'
+                size_hint: .18, .18
+                pos: 20, 20
+
+
+    #######################
+    # Tab5 - OS Utils
+    #######################
     TabbedPanelItem:
         text: 'OS Utils'
         font_size: '20sp'
