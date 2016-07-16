@@ -503,18 +503,21 @@ Builder.load_string("""
             Button:
                 id: printbutton
                 text: 'Print'
+                disabled: False
                 on_press: root.jobcontrol('start')
                 size_hint: .18, .18
                 pos: 20, 220
             Button:
                 id: pausebutton
                 text: 'Pause'
+                disabled: False
                 on_press: root.jobcontrol('pause')
                 size_hint: .18, .18
                 pos: 20, 120
             Button:
                 id: cancelbutton
                 text: 'Cancel'
+                disabled: False
                 on_press: root.jobcontrol('cancel')
                 size_hint: .18, .18
                 pos: 20, 20
@@ -634,6 +637,16 @@ class Panels(TabbedPanel):
                 self.ids.pausebutton.text = 'Resume'
             else:
                 self.ids.pausebutton.text = 'Pause'
+
+            #Enable/Disable print job buttons
+            if printing or paused:
+                self.ids.printbutton.disabled = True
+                self.ids.cancelbutton.disabled = False
+                self.ids.pausebutton.disabled = False
+            else:
+                self.ids.printbutton.disabled = False
+                self.ids.cancelbutton.disabled = True
+                self.ids.pausebutton.disabled = True
 
 
             #Set position of slider pointer
@@ -895,14 +908,21 @@ class Panels(TabbedPanel):
     def jobcontrol(self, *args):
         jobcommand = args[0]
         jobdata = {'command': jobcommand}
-        if debug:
-            print '[JOB COMMAND] Command: ' + str(jobcommand)
         try:
             if debug:
                 print '[JOB COMMAND] Trying /API request to Octoprint...'
+            #Send job request to the job api
             r = requests.post(jobapiurl, headers=headers, json=jobdata, timeout=httptimeout)
             if debug:
                 print '[JOB COMMAND] STATUS CODE: ' + str(r.status_code)
+                print '[JOB COMMAND]     COMMAND: ' + str(jobcommand)
+                print '[JOB COMMAND] BUTTON TEXT: ' + self.ids.pausebutton.text
+            #Update pause button text
+            if r.status_code == 204 and jobcommand == 'pause' and self.ids.pausebutton.text == 'Pause':
+                self.ids.pausebutton.text = 'Resume'
+            elif r.status_code == 204 and jobcommand == 'pause' and self.ids.pausebutton.text == 'Resume':
+                self.ids.pausebutton.text = 'Pause'
+
         except requests.exceptions.RequestException as e:
             r = False
             if debug:
