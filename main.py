@@ -523,7 +523,7 @@ Builder.load_string("""
                     halign: 'right'
                     valign: 'middle'
                 Label:
-                    id: printerstate
+                    id: printerstate3
                     text: 'Unknown'
                     text_size: self.size
                     halign: 'left'
@@ -990,9 +990,11 @@ class Panels(TabbedPanel):
             if printerstate is not None:
                 self.ids.printerstate.text = printerstate
                 self.ids.printerstate2.text = printerstate
+                self.ids.printerstate3.text = printerstate
             else:
                 self.ids.printerstate.text = 'Unknown'
                 self.ids.printerstate2.text = 'Unknown'
+                self.ids.printerstate3.text = 'Unknown'
             if jobpercent is not None:
                 jobpercent = int(jobpercent)
                 self.ids.jobpercent.text = str(jobpercent) + '%'
@@ -1028,6 +1030,7 @@ class Panels(TabbedPanel):
             self.ids.jobfilename.text = 'N/A'
             self.ids.printerstate.text = 'Unknown'
             self.ids.printerstate2.text = 'Unknown'
+            self.ids.printerstate3.text = 'Unknown'
             self.ids.jobpercent.text = 'N/A'
             self.ids.progressbar.value = 0
             self.ids.jobprinttime.text = '--:--:--'
