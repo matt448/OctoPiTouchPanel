@@ -400,16 +400,10 @@ Builder.load_string("""
                 size_hint: .15, .15
 
 
-
-
-
-
-
-    ##############        
-    # Tab3
-    ##############        
+    ###############################
+    # Tab3 - Temperature Controls
+    ###############################
     TabbedPanelItem:
-        ##NOTE: http://kivy.org/docs/examples/gen__camera__main__py.html
         text: 'Temps'
         font_size: '20sp'
         FloatLayout:
@@ -498,9 +492,69 @@ Builder.load_string("""
                 text: 'Hot End Target: ' + hotend_target.text
                 font_size: '16sp'
                 pos: 200, -100
-    ##############
-    # Tab4
-    ##############
+
+    #######################
+    # Tab4 - Job Controls
+    #######################
+    TabbedPanelItem:
+        text: 'Job'
+        font_size: '20sp'
+        FloatLayout:
+            GridLayout:
+                cols: 2
+                pos: 0, 320
+                size_hint: .75, .2
+                Label:
+                    text: 'Loaded File:  '
+                    text_size: self.size
+                    size_hint: .2, 1
+                    halign: 'right'
+                    valign: 'middle'
+                Label:
+                    id: jobfilenamefull
+                    text: 'N/A'
+                    text_size: self.size
+                    halign: 'left'
+                    valign: 'middle'
+                Label:
+                    text: 'Status:  '
+                    text_size: self.size
+                    size_hint: .2, 1
+                    halign: 'right'
+                    valign: 'middle'
+                Label:
+                    id: printerstate3
+                    text: 'Unknown'
+                    text_size: self.size
+                    halign: 'left'
+                    valign: 'middle'
+
+            Button:
+                id: printbutton
+                text: 'Print'
+                disabled: False
+                on_press: root.jobcontrol('start')
+                size_hint: .18, .18
+                pos: 20, 220
+            Button:
+                id: pausebutton
+                text: 'Pause'
+                disabled: False
+                on_press: root.jobcontrol('pause')
+                size_hint: .18, .18
+                pos: 20, 120
+            Button:
+                id: cancelbutton
+                text: 'Cancel'
+                disabled: False
+                on_press: root.jobcontrol('cancel')
+                size_hint: .18, .18
+                pos: 20, 20
+
+
+    #######################
+    # Tab5 - OS Utils
+    #######################
     TabbedPanelItem:
         text: 'OS Utils'
         font_size: '20sp'
@@ -606,6 +660,22 @@ class Panels(TabbedPanel):
             else:
                 self.ids.extrude.disabled = False
                 self.ids.retract.disabled = False
+
+            #Set pause/resume label on pause button
+            if paused:
+                self.ids.pausebutton.text = 'Resume'
+            else:
+                self.ids.pausebutton.text = 'Pause'
+
+            #Enable/Disable print job buttons
+            if printing or paused:
+                self.ids.printbutton.disabled = True
+                self.ids.cancelbutton.disabled = False
+                self.ids.pausebutton.disabled = False
+            else:
+                self.ids.printbutton.disabled = False
+                self.ids.cancelbutton.disabled = True
+                self.ids.pausebutton.disabled = True
 
 
             #Set position of slider pointer
@@ -864,6 +934,30 @@ class Panels(TabbedPanel):
                 print '[EXTRUDE FILAMENT] ERROR: Couldn\'t contact Octoprint /job API'
                 print e
 
+    def jobcontrol(self, *args):
+        jobcommand = args[0]
+        jobdata = {'command': jobcommand}
+        try:
+            if debug:
+                print '[JOB COMMAND] Trying /API request to Octoprint...'
+            #Send job request to the job api
+            r = requests.post(jobapiurl, headers=headers, json=jobdata, timeout=httptimeout)
+            if debug:
+                print '[JOB COMMAND] STATUS CODE: ' + str(r.status_code)
+                print '[JOB COMMAND]     COMMAND: ' + str(jobcommand)
+                print '[JOB COMMAND] BUTTON TEXT: ' + self.ids.pausebutton.text
+            #Update pause button text
+            if r.status_code == 204 and jobcommand == 'pause' and self.ids.pausebutton.text == 'Pause':
+                self.ids.pausebutton.text = 'Resume'
+            elif r.status_code == 204 and jobcommand == 'pause' and self.ids.pausebutton.text == 'Resume':
+                self.ids.pausebutton.text = 'Pause'
+
+        except requests.exceptions.RequestException as e:
+            r = False
+            if debug:
+                print '[JOB COMMAND] ERROR: Couldn\'t contact Octoprint /job API'
+                print e
+
 
     def getstats(self, *args):
         try:
@@ -887,16 +981,20 @@ class Panels(TabbedPanel):
                 print '[GET STATS] Printer state: ' + printerstate
                 print '[GET STATS] Job percent: ' + str(jobpercent) + '%'
             if jobfilename is not None:
+                jobfilenamefull = jobfilename
                 jobfilename = jobfilename[:25] #Shorten filename to 25 characters
                 self.ids.jobfilename.text = jobfilename
+                self.ids.jobfilenamefull.text = jobfilenamefull
             else:
                 self.ids.jobfilename.text = '-'
             if printerstate is not None:
                 self.ids.printerstate.text = printerstate
                 self.ids.printerstate2.text = printerstate
+                self.ids.printerstate3.text = printerstate
             else:
                 self.ids.printerstate.text = 'Unknown'
                 self.ids.printerstate2.text = 'Unknown'
+                self.ids.printerstate3.text = 'Unknown'
             if jobpercent is not None:
                 jobpercent = int(jobpercent)
                 self.ids.jobpercent.text = str(jobpercent) + '%'
@@ -932,6 +1030,7 @@ class Panels(TabbedPanel):
             self.ids.jobfilename.text = 'N/A'
             self.ids.printerstate.text = 'Unknown'
             self.ids.printerstate2.text = 'Unknown'
+            self.ids.printerstate3.text = 'Unknown'
             self.ids.jobpercent.text = 'N/A'
             self.ids.progressbar.value = 0
             self.ids.jobprinttime.text = '--:--:--'
@@ -959,6 +1058,7 @@ class Panels(TabbedPanel):
 
     def exitapp(self, *args):
         exit()
+
     def restartnetworking(self, *args):
         global platform
         global nicname #Network card name from config file
