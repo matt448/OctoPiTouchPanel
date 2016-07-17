@@ -502,13 +502,13 @@ Builder.load_string("""
         FloatLayout:
             GridLayout:
                 cols: 2
-                pos: 20, 180
-                size_hint: .75, 1
+                pos: 0, 320
+                size_hint: .75, .2
                 Label:
-                    text: 'Loaded File:'
+                    text: 'Loaded File:  '
                     text_size: self.size
                     size_hint: .2, 1
-                    halign: 'left'
+                    halign: 'right'
                     valign: 'middle'
                 Label:
                     id: jobfilenamefull
@@ -516,6 +516,19 @@ Builder.load_string("""
                     text_size: self.size
                     halign: 'left'
                     valign: 'middle'
+                Label:
+                    text: 'Status:  '
+                    text_size: self.size
+                    size_hint: .2, 1
+                    halign: 'right'
+                    valign: 'middle'
+                Label:
+                    id: printerstate
+                    text: 'Unknown'
+                    text_size: self.size
+                    halign: 'left'
+                    valign: 'middle'
+
             Button:
                 id: printbutton
                 text: 'Print'
