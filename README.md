@@ -19,7 +19,7 @@ pip install kivy (Kivy-Garden is included)
 garden install graph
 </pre>
 
-## Configure the kivy to use the touchscreen
+## Configure kivy to use the touchscreen input
 [Copied from https://kivy.org/docs/installation/installation-rpi.html]<br>
 If you are using the official Raspberry Pi touch display, you need to configure Kivy to use it as an input source. To do this, edit the file ~/.kivy/config.ini and go to the [input] section. Add this:
 <pre>
