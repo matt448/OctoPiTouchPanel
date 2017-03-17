@@ -1,7 +1,7 @@
 # OctoPiTouchPanel
 Touchscreen interface for OctoPrint using the kivy gui framework
 
-The layout is designed for the official Raspberry Pi Foundation 7" touchscreen. I would recommend using the Raspberry Pi 2 Model B for the Octoprint server. 
+The layout is designed for the official Raspberry Pi Foundation 7" touchscreen. I would recommend using the Raspberry Pi 2 or 3 Model B for the Octoprint server. I think the Pi 1 might be a bit under powered for running this touchscreen app.
 
 # Installation
 Big thanks to Tim Vaillemans for documenting this installation process.
