@@ -1,5 +1,5 @@
 
-#kivy imports
+# kivy imports
 from kivy.app import App
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.floatlayout import FloatLayout
@@ -12,7 +12,7 @@ from kivy.clock import Clock
 from kivy.utils import get_color_from_hex as rgb
 from kivy.garden.graph import Graph, MeshLinePlot, SmoothLinePlot
 
-#other imports
+# other imports
 import time
 import os
 from math import sin, cos
@@ -22,30 +22,29 @@ import ConfigParser
 import sys
 from subprocess import *
 import pprint
-from collections import deque #Fast pops from the ends of lists
+from collections import deque  # Fast pops from the ends of lists
 
-#Temperature lists
+# Temperature lists
 hotendactual_list = deque([])
 hotendtarget_list = deque([])
 bedactual_list = deque([])
 bedtarget_list = deque([])
 
-#Initialize Temperature lists
+# Initialize Temperature lists
 for i in range(360):
     hotendactual_list.append(0)
     hotendtarget_list.append(0)
     bedactual_list.append(0)
     bedtarget_list.append(0)
-#Fill timestamp list with 1000x time vals in seconds
+# Fill timestamp list with 1000x time vals in seconds
 graphtime_list = []
-for i in range(360): #Fill the list with zeros
-  graphtime_list.append(0)
+for i in range(360):  # Fill the list with zeros
+    graphtime_list.append(0)
 
 graphtime_list[0] = 30000
-for i in range(359): #Replace values with decreasing seconds from 30 to 0
+for i in range(359):  # Replace values with decreasing seconds from 30 to 0
     val = int(graphtime_list[i] - 83)
     graphtime_list[i+1] = (val)
-
 
 
 # Read settings from the config file
@@ -62,13 +61,14 @@ invert_Y = int(settings.get('AxisInvert', 'invert_Y'))
 invert_Z = int(settings.get('AxisInvert', 'invert_Z'))
 
 # Define Octoprint constants
-httptimeout = 3  #http request timeout in seconds
-printerapiurl = 'http://'+ host + '/api/printer'
-printheadurl = 'http://'+ host + '/api/printer/printhead'
-bedurl = 'http://'+ host + '/api/printer/bed'
-toolurl = 'http://'+ host + '/api/printer/tool'
+httptimeout = 3   # http request timeout in seconds
+printerapiurl = 'http://' + host + '/api/printer'
+printheadurl = 'http://' + host + '/api/printer/printhead'
+bedurl = 'http://' + host + '/api/printer/bed'
+toolurl = 'http://' + host + '/api/printer/tool'
 jobapiurl = 'http://' + host + '/api/job'
 connectionurl = 'http://' + host + '/api/connection'
+commandurl = 'http://' + host + '/api/printer/command'
 headers = {'X-Api-Key': apikey, 'content-type': 'application/json'}
 
 if debug:
@@ -79,12 +79,12 @@ bed_temp_val = 0.0
 hotend_temp_val = 0.0
 jogincrement = 10
 
-platform = sys.platform #Grab platform name for platform specific commands
+platform = sys.platform  # Grab platform name for platform specific commands
 
 start_time = time.time()
 
 
-#Kivy widget layout
+# Kivy widget layout
 Builder.load_string("""
 #:import rgb kivy.utils.get_color_from_hex
 <Panels>:
@@ -93,9 +93,9 @@ Builder.load_string("""
     do_default_tab: False
     tab_height: '60dp'
     my_graph: my_graph
-    ##############        
+    ##############
     # Tab1
-    ##############        
+    ##############
     TabbedPanelItem:
         id: tab1
         text: 'Status'
@@ -245,7 +245,7 @@ Builder.load_string("""
                     background_color: rgb('f8f8f2')  # back ground color of canvas
                     tick_color: rgb('808080')  # ticks and grid
                     border_color: rgb('808080')  # border drawn around each graph
-    ##############        
+    ##############
     # Tab2
     ##############
     TabbedPanelItem:
@@ -324,18 +324,19 @@ Builder.load_string("""
             Label:
                 id: printerstate2
                 text: 'Unknown'
-                pos: 310, 195
+                #pos: 310, 195
+                pos: 335, 195
             Button:
                 text: 'Connect'
                 id: connect
                 on_press: root.connect()
-                pos: 650, 345
+                pos: 675, 345
                 size_hint: .15, .10
             Button:
                 text: 'Disconnect'
                 id: connect
                 on_press: root.disconnect()
-                pos: 650, 295
+                pos: 675, 295
                 size_hint: .15, .10
             #####################
             # Jog increments
@@ -398,7 +399,39 @@ Builder.load_string("""
                 on_press: root.extrudefilament(-1)
                 pos: 450, 130
                 size_hint: .15, .15
-
+            ######################
+            # Fan Controls
+            ######################
+            Button:
+                size_hint_x: None
+                width: '25dp'
+                id: fan100
+                disabled: False
+                text: 'FAN 100%'
+                on_press: root.fanspeed(255)
+                pos: 700, 210
+                size_hint: .10, .15
+            Button:
+                text: 'FAN 75%'
+                id: fan75
+                disabled: False
+                on_press: root.fanspeed(192)
+                pos: 700, 140
+                size_hint: .10, .15
+            Button:
+                text: 'FAN 50%'
+                id: fan50
+                disabled: False
+                on_press: root.fanspeed(128)
+                pos: 700, 70
+                size_hint: .10, .15
+            Button:
+                text: 'FAN OFF'
+                id: fanoff
+                disabled: False
+                on_press: root.fanspeed(0)
+                pos: 700, 0
+                size_hint: .10, .15
 
     ###############################
     # Tab3 - Temperature Controls
@@ -581,7 +614,7 @@ Builder.load_string("""
 
 
 
-""")#End of kv syntax
+""")  # End of kv syntax
 
 
 class Panels(TabbedPanel):
@@ -606,7 +639,7 @@ class Panels(TabbedPanel):
             if debug:
                 print '[GET TEMPS] JSON Data: ' + str(r.json())
         if r and r.status_code == 200 and 'tool0' in r.json()['temperature']:
-            printeronline = True 
+            printeronline = True
             hotendactual = r.json()['temperature']['tool0']['actual']
             hotendtarget = r.json()['temperature']['tool0']['target']
             bedactual = r.json()['temperature']['bed']['actual']
@@ -622,7 +655,7 @@ class Panels(TabbedPanel):
                 print '       PAUSED: ' + str(paused)
                 print '  OPERATIONAL: ' + str(operational)
 
-            #Update tempurature arrays with new data
+            # Update tempurature arrays with new data
             hotendactual_list.popleft()
             hotendactual_list.append(hotendactual)
             hotendtarget_list.popleft()
@@ -632,7 +665,7 @@ class Panels(TabbedPanel):
             bedtarget_list.popleft()
             bedtarget_list.append(bedtarget)
 
-            #Update text color on Temps tab if values are above 40C
+            # Update text color on Temps tab if values are above 40C
             if bedactual > 40:
                 self.ids.tab3_bed_actual.color = [1, 0, 0, 1]
             else:
@@ -653,7 +686,7 @@ class Panels(TabbedPanel):
             else:
                 self.ids.tab3_hotend_target.color = [1, 1, 1, 1]
 
-            #Enable/Disable extruder buttons
+            # Enable/Disable extruder buttons
             if hotendactual < 130 or printing or paused:
                 self.ids.extrude.disabled = True
                 self.ids.retract.disabled = True
@@ -661,13 +694,13 @@ class Panels(TabbedPanel):
                 self.ids.extrude.disabled = False
                 self.ids.retract.disabled = False
 
-            #Set pause/resume label on pause button
+            # Set pause/resume label on pause button
             if paused:
                 self.ids.pausebutton.text = 'Resume'
             else:
                 self.ids.pausebutton.text = 'Pause'
 
-            #Enable/Disable print job buttons
+            # Enable/Disable print job buttons
             if printing or paused:
                 self.ids.printbutton.disabled = True
                 self.ids.cancelbutton.disabled = False
@@ -677,14 +710,13 @@ class Panels(TabbedPanel):
                 self.ids.cancelbutton.disabled = True
                 self.ids.pausebutton.disabled = True
 
-
-            #Set position of slider pointer
+            # Set position of slider pointer
             self.ids.hotendpb.value = (hotendactual / self.ids.hotendslider.max) * 100
             self.ids.bedpb.value = (bedactual / self.ids.bedslider.max) * 100
 
-            #Update tempurature values with new data
+            # Update tempurature values with new data
             self.ids.bed_actual.text = str(bedactual) + u"\u00b0" + ' C'
-            self.ids.hotend_actual.text = str(hotendactual)  + u"\u00b0" + ' C'
+            self.ids.hotend_actual.text = str(hotendactual) + u"\u00b0" + ' C'
             if bedtarget > 0:
                 self.ids.bed_target.text = str(bedtarget) + u"\u00b0" + ' C'
             else:
@@ -695,13 +727,12 @@ class Panels(TabbedPanel):
                 self.ids.hotend_target.text = 'OFF'
         else:
             if r:
-                print 'Error. API Status Code: ' + str(r.status_code) #Print API status code if we have one
-            #If we can't get any values from Octoprint just fill values with not available.
+                print 'Error. API Status Code: ' + str(r.status_code)  # Print API status code if we have one
+            # If we can't get any values from Octoprint just fill values with not available.
             self.ids.bed_actual.text = 'N/A'
             self.ids.hotend_actual.text = 'N/A'
             self.ids.bed_target.text = 'N/A'
             self.ids.hotend_target.text = 'N/A'
-
 
     def homez(self, *args):
         homezdata = {'command': 'home', 'axes': ['z']}
@@ -849,8 +880,8 @@ class Panels(TabbedPanel):
         jogincrement = args[0]
 
     def connect(self, *args):
-        connectiondata = {'command': 'connect', 'port': '/dev/ttyACM0', 'baudrate': 250000, \
-                'save': False, 'autoconnect': False}
+        connectiondata = {'command': 'connect', 'port': '/dev/ttyACM0', 'baudrate': 250000,
+                          'save': False, 'autoconnect': False}
         try:
             if debug:
                 print '[CONNECT] Trying /job API request to Octoprint...'
@@ -880,7 +911,7 @@ class Panels(TabbedPanel):
             if debug:
                 print '[DISCONNECT] ERROR: Couldn\'t contact Octoprint /job API'
                 print e
- 
+
     def setbedtarget(self, *args):
         bedsliderval = args[0]
         bedtargetdata = {'command': 'target', 'target': bedsliderval}
@@ -934,19 +965,32 @@ class Panels(TabbedPanel):
                 print '[EXTRUDE FILAMENT] ERROR: Couldn\'t contact Octoprint /job API'
                 print e
 
+    def fanspeed(self, *args):
+        speed = args[0]
+        fan_gcode = 'M106 S' + str(speed)
+        fancmd = {"commands": [fan_gcode]}
+        if debug:
+            print '[FAN CONTROL] Speed: ' + str(speed)
+            print '[FAN CONTROL] ' + str(fancmd)
+        try:
+            r = requests.post(commandurl, headers=headers, json=fancmd, timeout=httptimeout)
+        except requests.exceptions.RequestException as e:
+            r = False
+
+
     def jobcontrol(self, *args):
         jobcommand = args[0]
         jobdata = {'command': jobcommand}
         try:
             if debug:
                 print '[JOB COMMAND] Trying /API request to Octoprint...'
-            #Send job request to the job api
+            # Send job request to the job api
             r = requests.post(jobapiurl, headers=headers, json=jobdata, timeout=httptimeout)
             if debug:
                 print '[JOB COMMAND] STATUS CODE: ' + str(r.status_code)
                 print '[JOB COMMAND]     COMMAND: ' + str(jobcommand)
                 print '[JOB COMMAND] BUTTON TEXT: ' + self.ids.pausebutton.text
-            #Update pause button text
+            # Update pause button text
             if r.status_code == 204 and jobcommand == 'pause' and self.ids.pausebutton.text == 'Pause':
                 self.ids.pausebutton.text = 'Resume'
             elif r.status_code == 204 and jobcommand == 'pause' and self.ids.pausebutton.text == 'Resume':
@@ -957,7 +1001,6 @@ class Panels(TabbedPanel):
             if debug:
                 print '[JOB COMMAND] ERROR: Couldn\'t contact Octoprint /job API'
                 print e
-
 
     def getstats(self, *args):
         try:
@@ -982,7 +1025,7 @@ class Panels(TabbedPanel):
                 print '[GET STATS] Job percent: ' + str(jobpercent) + '%'
             if jobfilename is not None:
                 jobfilenamefull = jobfilename
-                jobfilename = jobfilename[:25] #Shorten filename to 25 characters
+                jobfilename = jobfilename[:25]  # Shorten filename to 25 characters
                 self.ids.jobfilename.text = jobfilename
                 self.ids.jobfilenamefull.text = jobfilenamefull
             else:
@@ -1025,8 +1068,8 @@ class Panels(TabbedPanel):
 
         else:
             if r:
-                print 'Error. API Status Code: ' + str(r.status_code) #Print API status code if we have one
-            #If we can't get any values from Octoprint API fill with these values.
+                print 'Error. API Status Code: ' + str(r.status_code)  # Print API status code if we have one
+            # If we can't get any values from Octoprint API fill with these values.
             self.ids.jobfilename.text = 'N/A'
             self.ids.printerstate.text = 'Unknown'
             self.ids.printerstate2.text = 'Unknown'
@@ -1038,7 +1081,7 @@ class Panels(TabbedPanel):
 
     def updateipaddr(self, *args):
         global platform
-        global nicname #Network card name from config file
+        global nicname  # Network card name from config file
         if 'linux' in platform or 'Linux' in platform:
             cmd = "ip addr show " + nicname + " | grep inet | awk '{print $2}' | cut -d/ -f1"
             p = Popen(cmd, shell=True, stdout=PIPE)
@@ -1061,7 +1104,7 @@ class Panels(TabbedPanel):
 
     def restartnetworking(self, *args):
         global platform
-        global nicname #Network card name from config file
+        global nicname  # Network card name from config file
         if 'linux' in platform or 'Linux' in platform:
             cmd = "sudo ifdown " + nicname
             p = Popen(cmd, shell=True, stdout=PIPE)
@@ -1077,30 +1120,28 @@ class Panels(TabbedPanel):
             if debug:
                 print 'Unknown Platform. Not restarting network interface'
 
-
-    
     def graphpoints(self, *args):
         hotendactual_plot = SmoothLinePlot(color=[1, 0, 0, 1])
         hotendtarget_plot = MeshLinePlot(color=[1, 0, 0, .75])
         bedactual_plot = SmoothLinePlot(color=[0, 0, 1, 1])
         bedtarget_plot = MeshLinePlot(color=[0, 0, 1, .75])
-        #Build list of plot points tuples from temp and time lists
-        ##FIXME - Need to reduce the number of points on the graph. 360 is overkill
+        # Build list of plot points tuples from temp and time lists
+        # FIXME - Need to reduce the number of points on the graph. 360 is overkill
         hotendactual_points_list = []
         hotendtarget_points_list = []
         bedactual_points_list = []
         bedtarget_points_list = []
         for i in range(360):
-            hotendactual_points_list.append( (graphtime_list[i]/1000.0*-1, hotendactual_list[i]) )
-            hotendtarget_points_list.append( (graphtime_list[i]/1000.0*-1, hotendtarget_list[i]) )
-            bedactual_points_list.append( (graphtime_list[i]/1000.0*-1, bedactual_list[i]) )
-            bedtarget_points_list.append( (graphtime_list[i]/1000.0*-1, bedtarget_list[i]) )
+            hotendactual_points_list.append((graphtime_list[i]/1000.0*-1, hotendactual_list[i]))
+            hotendtarget_points_list.append((graphtime_list[i]/1000.0*-1, hotendtarget_list[i]))
+            bedactual_points_list.append((graphtime_list[i]/1000.0*-1, bedactual_list[i]))
+            bedtarget_points_list.append((graphtime_list[i]/1000.0*-1, bedtarget_list[i]))
 
-        #Remove all old plots from the graph before drawing new ones
+        # Remove all old plots from the graph before drawing new ones
         for plot in self.my_graph.plots:
             self.my_graph.remove_plot(plot)
 
-        #Draw the new graphs
+        # Draw the new graphs
         hotendactual_plot.points = hotendactual_points_list
         self.my_graph.add_plot(hotendactual_plot)
         hotendtarget_plot.points = hotendtarget_points_list
@@ -1110,19 +1151,20 @@ class Panels(TabbedPanel):
         bedtarget_plot.points = bedtarget_points_list
         self.my_graph.add_plot(bedtarget_plot)
 
+
 class TabbedPanelApp(App):
     def build(self):
         Window.size = (800, 480)
         panels = Panels()
-        Clock.schedule_once(panels.gettemps, 0.5) #Update bed and hotend at startup
-        Clock.schedule_interval(panels.gettemps, 5) #Update bed and hotend temps every 5 seconds
+        Clock.schedule_once(panels.gettemps, 0.5)  # Update bed and hotend at startup
+        Clock.schedule_interval(panels.gettemps, 5)  # Update bed and hotend temps every 5 seconds
 
-        Clock.schedule_interval(panels.getstats, 5) #Update job stats every 5 seconds
+        Clock.schedule_interval(panels.getstats, 5)  # Update job stats every 5 seconds
 
-        Clock.schedule_once(panels.updateipaddr, 0.5) #Update IP addr once right away
-        Clock.schedule_interval(panels.updateipaddr, 30) #Then update IP every 30 seconds
+        Clock.schedule_once(panels.updateipaddr, 0.5)  # Update IP addr once right away
+        Clock.schedule_interval(panels.updateipaddr, 30)  # Then update IP every 30 seconds
 
-        Clock.schedule_interval(panels.graphpoints, 10) #Update graphs
+        Clock.schedule_interval(panels.graphpoints, 10)  # Update graphs
         return panels
 
 
