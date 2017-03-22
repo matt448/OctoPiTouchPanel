@@ -1,3 +1,4 @@
+#!/usr/bin/python
 
 # kivy imports
 from kivy.app import App
