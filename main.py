@@ -409,8 +409,8 @@ Builder.load_string("""
                 value: int(100)
                 orientation: 'vertical'
                 on_value: fanslider.value = int(self.value)
-                size_hint: .15, .80
-                pos: 675, 200
+                size_hint: .15, .42
+                pos: 620, 0
             Button:
                 size_hint_x: None
                 width: '25dp'
@@ -418,14 +418,14 @@ Builder.load_string("""
                 disabled: False
                 text: 'FAN ' + str(int(fanslider.value)) + '%'
                 on_press: root.fanspeed(fanslider.value)
-                pos: 700, 210
+                pos: 700, 100
                 size_hint: .10, .15
             Button:
                 text: 'FAN OFF'
                 id: fanoff
                 disabled: False
                 on_press: root.fanspeed(0)
-                pos: 700, 0
+                pos: 700, 12
                 size_hint: .10, .15
 
     ###############################
