@@ -57,12 +57,20 @@ python /root/OctoPiTouchPanel/main.py &
 
 # Screenshots
 
- ![screenshot](pics/screenshot.jpg)
- 
+ ![screenshot](pics/screenshot_status.png)
+
  <br>
- 
-  ![screenshot_control](pics/screenshot_control.jpg)
-  
+
+  ![screenshot_control](pics/screenshot_control.png)
+
   <br>
-  
-  ![screenshot_temps](pics/screenshot_temps.jpg)
+
+  ![screenshot_temps](pics/screenshot_temps.png)
+
+  <br>
+
+  ![screenshot_temps](pics/screenshot_job.png)
+
+  <br>
+
+  ![screenshot_temps](pics/screenshot_osutils.png)
