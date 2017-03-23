@@ -403,28 +403,22 @@ Builder.load_string("""
             ######################
             # Fan Controls
             ######################
+            Slider:
+                id: fanslider
+                max: 100
+                value: int(100)
+                orientation: 'vertical'
+                on_value: fanslider.value = int(self.value)
+                size_hint: .15, .80
+                pos: 675, 200
             Button:
                 size_hint_x: None
                 width: '25dp'
-                id: fan100
+                id: fanpercent
                 disabled: False
-                text: 'FAN 100%'
-                on_press: root.fanspeed(255)
+                text: 'FAN ' + str(int(fanslider.value)) + '%'
+                on_press: root.fanspeed(fanslider.value)
                 pos: 700, 210
-                size_hint: .10, .15
-            Button:
-                text: 'FAN 75%'
-                id: fan75
-                disabled: False
-                on_press: root.fanspeed(192)
-                pos: 700, 140
-                size_hint: .10, .15
-            Button:
-                text: 'FAN 50%'
-                id: fan50
-                disabled: False
-                on_press: root.fanspeed(128)
-                pos: 700, 70
                 size_hint: .10, .15
             Button:
                 text: 'FAN OFF'
@@ -967,11 +961,12 @@ class Panels(TabbedPanel):
                 print e
 
     def fanspeed(self, *args):
-        speed = args[0]
-        fan_gcode = 'M106 S' + str(speed)
+        speed_percent = int(args[0])
+        speed_pwm = int(speed_percent * 2.551)
+        fan_gcode = 'M106 S' + str(speed_pwm)
         fancmd = {"commands": [fan_gcode]}
         if debug:
-            print '[FAN CONTROL] Speed: ' + str(speed)
+            print '[FAN CONTROL] Speed: ' + str(speed_pwm)
             print '[FAN CONTROL] ' + str(fancmd)
         try:
             r = requests.post(commandurl, headers=headers, json=fancmd, timeout=httptimeout)
