@@ -45,7 +45,7 @@ for i in range(360):  # Fill the list with zeros
 graphtime_list[0] = 30000
 for i in range(359):  # Replace values with decreasing seconds from 30 to 0
     val = int(graphtime_list[i] - 83)
-    graphtime_list[i+1] = (val)
+    graphtime_list[i + 1] = (val)
 
 
 # Read settings from the config file
@@ -262,35 +262,35 @@ Builder.load_string("""
                 text: '^'
                 id: jogforward
                 disabled: False
-                on_press: root.jogforward()
+                on_press: root.jogaxis('y', 'forward')
                 pos: 100, 200
                 size_hint: .10, .15
             Button:
                 text: '<'
                 id:jogleft
                 disabled: False
-                on_press: root.jogleft()
+                on_press: root.jogaxis('x', 'left')
                 pos: 10, 130
                 size_hint: .10, .15
             Button:
                 text: 'H'
                 id: homexy
                 disabled: False
-                on_press: root.homexy()
+                on_press: root.home('xy')
                 pos: 100, 130
                 size_hint: .10, .15
             Button:
                 text: '>'
                 id: jogright
                 disabled: False
-                on_press: root.jogright()
+                on_press: root.jogaxis('x', 'right')
                 pos: 190, 130
                 size_hint: .10, .15
             Button:
                 text: 'v'
                 id: jogbackward
                 disabled: False
-                on_press: root.jogbackward()
+                on_press: root.jogaxis('y', 'backward')
                 pos: 100, 60
                 size_hint: .10, .15
             #Z axis buttons
@@ -304,21 +304,21 @@ Builder.load_string("""
                 id: jogzup
                 disabled: False
                 text: '^'
-                on_press: root.jogzup()
+                on_press: root.jogaxis('z', 'up')
                 pos: 300, 200
                 size_hint: .10, .15
             Button:
                 text: 'H'
                 id: homez
                 disabled: False
-                on_press: root.homez()
+                on_press: root.home('z')
                 pos: 300, 130
                 size_hint: .10, .15
             Button:
                 text: 'v'
                 id: jogzdown
                 disabled: False
-                on_press: root.jogzdown()
+                on_press: root.jogaxis('z', 'down')
                 pos: 300, 60
                 size_hint: .10, .15
             #Connect Button
@@ -729,136 +729,56 @@ class Panels(TabbedPanel):
             self.ids.bed_target.text = 'N/A'
             self.ids.hotend_target.text = 'N/A'
 
-    def homez(self, *args):
-        homezdata = {'command': 'home', 'axes': ['z']}
-        try:
-            if debug:
-                print '[HOME Z] Trying /API request to Octoprint...'
-            r = requests.post(printheadurl, headers=headers, json=homezdata, timeout=httptimeout)
-            if debug:
-                print '[HOME Z] STATUS CODE: ' + str(r.status_code)
-        except requests.exceptions.RequestException as e:
-            r = False
-            if debug:
-                print 'ERROR: Couldn\'t contact Octoprint /job API'
-                print e
-
-    def jogzup(self, *args):
-        global invert_Z
-        if invert_Z:
-            jogzupdata = {'command': 'jog', 'z': (jogincrement * -1)}
+    def home(self, *args):
+        axis = args[0]
+        print 'HOME AXIS: ' + axis
+        if axis == 'xy':
+            homedata = {'command': 'home', 'axes': ['x', 'y']}
         else:
-            jogzupdata = {'command': 'jog', 'z': jogincrement}
+            homedata = {'command': 'home', 'axes': ['z']}
         try:
             if debug:
-                print '[JOG Z UP] Trying /API request to Octoprint...'
-            r = requests.post(printheadurl, headers=headers, json=jogzupdata, timeout=httptimeout)
+                print '[HOME ' + axis + '] Trying /API request to Octoprint...'
+            r = requests.post(printheadurl, headers=headers, json=homedata, timeout=httptimeout)
             if debug:
-                print 'STATUS CODE: ' + str(r.status_code)
+                print '[HOME ' + axis + '] STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
             r = False
             if debug:
                 print 'ERROR: Couldn\'t contact Octoprint /job API'
                 print e
 
-    def jogzdown(self, *args):
-        global invert_Z
-        if invert_Z:
-            jogzdowndata = {'command': 'jog', 'z': jogincrement}
-        else:
-            jogzdowndata = {'command': 'jog', 'z': (jogincrement * -1)}
-        try:
-            if debug:
-                print '[JOG Z UP] Trying /API request to Octoprint...'
-            r = requests.post(printheadurl, headers=headers, json=jogzdowndata, timeout=httptimeout)
-            if debug:
-                print 'STATUS CODE: ' + str(r.status_code)
-        except requests.exceptions.RequestException as e:
-            r = False
-            if debug:
-                print 'ERROR: Couldn\'t contact Octoprint /job API'
-                print e
-
-    def homexy(self, *args):
-        homexydata = {'command': 'home', 'axes': ['x', 'y']}
-        try:
-            if debug:
-                print '[HOME X/Y] Trying /API request to Octoprint...'
-            r = requests.post(printheadurl, headers=headers, json=homexydata, timeout=httptimeout)
-            if debug:
-                print 'STATUS CODE: ' + str(r.status_code)
-        except requests.exceptions.RequestException as e:
-            r = False
-            if debug:
-                print 'ERROR: Couldn\'t contact Octoprint /job API'
-                print e
-
-    def jogleft(self, *args):
+    def jogaxis(self, *args):
+        axis = args[0]
+        direction = args[1]
         global invert_X
-        if invert_X:
-            jogleftdata = {'command': 'jog', 'x': (jogincrement * -1)}
-        else:
-            jogleftdata = {'command': 'jog', 'x': jogincrement}
-        try:
-            if debug:
-                print '[JOG LEFT] Trying /API request to Octoprint...'
-                print '[JOG LEFT] Data: ' + str(jogleftdata)
-            r = requests.post(printheadurl, headers=headers, json=jogleftdata, timeout=httptimeout)
-            if debug:
-                print 'STATUS CODE: ' + str(r.status_code)
-        except requests.exceptions.RequestException as e:
-            r = False
-            if debug:
-                print 'ERROR: Couldn\'t contact Octoprint /job API'
-                print e
-
-    def jogright(self, *args):
-        global invert_X
-        if invert_X:
-            jogrightdata = {'command': 'jog', 'x': jogincrement}
-        else:
-            jogrightdata = {'command': 'jog', 'x': (jogincrement * -1)}
-        try:
-            if debug:
-                print '[JOG RIGHT] Trying /API request to Octoprint...'
-                print '[JOG RIGHT] Data: ' + str(jogrightdata)
-            r = requests.post(printheadurl, headers=headers, json=jogrightdata, timeout=httptimeout)
-            if debug:
-                print 'STATUS CODE: ' + str(r.status_code)
-        except requests.exceptions.RequestException as e:
-            r = False
-            if debug:
-                print 'ERROR: Couldn\'t contact Octoprint /job API'
-                print e
-
-    def jogforward(self, *args):
         global invert_Y
-        if invert_Y:
-            jogforwarddata = {'command': 'jog', 'y': (jogincrement * -1)}
-        else:
-            jogforwarddata = {'command': 'jog', 'y': jogincrement}
-        try:
-            if debug:
-                print '[JOG FORWARD] Trying /API request to Octoprint...'
-            r = requests.post(printheadurl, headers=headers, json=jogforwarddata, timeout=httptimeout)
-            if debug:
-                print 'STATUS CODE: ' + str(r.status_code)
-        except requests.exceptions.RequestException as e:
-            r = False
-            if debug:
-                print 'ERROR: Couldn\'t contact Octoprint /job API'
-                print e
+        global invert_Z
+        global jogincrement
+        invert_axis = {'x': invert_X, 'y': invert_Y, 'z': invert_Z}
 
-    def jogbackward(self, *args):
-        global invert_Y
-        if invert_Y:
-            jogbackwarddata = {'command': 'jog', 'y': jogincrement}
-        else:
-            jogbackwarddata = {'command': 'jog', 'y': (jogincrement * -1)}
+        print 'AXIS: ' + axis
+        print 'DIRECTION: ' + direction
+        print 'INCREMENT: ' + str(jogincrement)
+
+        if direction == 'up' or direction == 'forward' or direction == 'left':
+            if invert_axis[axis]:
+                inc = jogincrement * -1
+            else:
+                inc = jogincrement
+
+        if direction == 'down' or direction == 'backward' or direction == 'right':
+            if invert_axis[axis]:
+                inc = jogincrement
+            else:
+                inc = jogincrement * -1
+
+        jogdata = {'command': 'jog', axis: inc}
+        print 'JOGDATA: ' + str(jogdata)
         try:
             if debug:
-                print '[JOG BACKWARD] Trying /API request to Octoprint...'
-            r = requests.post(printheadurl, headers=headers, json=jogbackwarddata, timeout=httptimeout)
+                print '[JOG ' + axis + ' ' + direction + '] Trying /API request to Octoprint...'
+            r = requests.post(printheadurl, headers=headers, json=jogdata, timeout=httptimeout)
             if debug:
                 print 'STATUS CODE: ' + str(r.status_code)
         except requests.exceptions.RequestException as e:
@@ -973,7 +893,6 @@ class Panels(TabbedPanel):
         except requests.exceptions.RequestException as e:
             r = False
 
-
     def jobcontrol(self, *args):
         jobcommand = args[0]
         jobdata = {'command': jobcommand}
@@ -1042,23 +961,25 @@ class Panels(TabbedPanel):
                 self.ids.jobpercent.text = '---%'
                 self.ids.progressbar.value = 0
             if jobprinttime is not None:
-                hours = int(jobprinttime/60/60)
+                hours = int(jobprinttime / 60 / 60)
                 if hours > 0:
-                    minutes = int(jobprinttime/60)-(60*hours)
+                    minutes = int(jobprinttime / 60) - (60 * hours)
                 else:
-                    minutes = int(jobprinttime/60)
+                    minutes = int(jobprinttime / 60)
                 seconds = int(jobprinttime % 60)
-                self.ids.jobprinttime.text = str(hours).zfill(2) + ':' + str(minutes).zfill(2) + ':' + str(seconds).zfill(2)
+                self.ids.jobprinttime.text = str(hours).zfill(2) + ':' + \
+                    str(minutes).zfill(2) + ':' + str(seconds).zfill(2)
             else:
                 self.ids.jobprinttime.text = '00:00:00'
             if jobprinttimeleft is not None:
-                hours = int(jobprinttimeleft/60/60)
+                hours = int(jobprinttimeleft / 60 / 60)
                 if hours > 0:
-                    minutes = int(jobprinttimeleft/60)-(60*hours)
+                    minutes = int(jobprinttimeleft / 60) - (60 * hours)
                 else:
-                    minutes = int(jobprinttimeleft/60)
+                    minutes = int(jobprinttimeleft / 60)
                 seconds = int(jobprinttimeleft % 60)
-                self.ids.jobprinttimeleft.text = str(hours).zfill(2) + ':' + str(minutes).zfill(2) + ':' + str(seconds).zfill(2)
+                self.ids.jobprinttimeleft.text = str(hours).zfill(2) + \
+                    ':' + str(minutes).zfill(2) + ':' + str(seconds).zfill(2)
             else:
                 self.ids.jobprinttimeleft.text = '00:00:00'
 
@@ -1128,10 +1049,10 @@ class Panels(TabbedPanel):
         bedactual_points_list = []
         bedtarget_points_list = []
         for i in range(360):
-            hotendactual_points_list.append((graphtime_list[i]/1000.0*-1, hotendactual_list[i]))
-            hotendtarget_points_list.append((graphtime_list[i]/1000.0*-1, hotendtarget_list[i]))
-            bedactual_points_list.append((graphtime_list[i]/1000.0*-1, bedactual_list[i]))
-            bedtarget_points_list.append((graphtime_list[i]/1000.0*-1, bedtarget_list[i]))
+            hotendactual_points_list.append((graphtime_list[i] / 1000.0 * -1, hotendactual_list[i]))
+            hotendtarget_points_list.append((graphtime_list[i] / 1000.0 * -1, hotendtarget_list[i]))
+            bedactual_points_list.append((graphtime_list[i] / 1000.0 * -1, bedactual_list[i]))
+            bedtarget_points_list.append((graphtime_list[i] / 1000.0 * -1, bedtarget_list[i]))
 
         # Remove all old plots from the graph before drawing new ones
         for plot in self.my_graph.plots:
