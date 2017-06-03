@@ -590,9 +590,15 @@ Builder.load_string("""
             Button:
                 id: restartOS
                 text: 'Reboot'
-                on_press: root.restartOS()
+                on_press: root.restartOS('reboot')
                 size_hint: .18, .12
                 pos: 10, 95
+            Button:
+                id: shutdownOS
+                text: 'Shutdown'
+                on_press: root.restartOS('shutdown')
+                size_hint: .18, .12
+                pos: 10, 30
             Button:
                 id: exitApp
                 text: 'Exit'
@@ -1008,10 +1014,16 @@ class Panels(TabbedPanel):
             self.ids.ipaddr.text = 'Unknown Platform'
 
     def restartOS(self, *args):
+        command = args[0]
         global platform
         if 'linux' in platform or 'Linux' in platform:
-            print '[RESTART] Restarting the OS'
-            cmd = "sudo shutdown now -r"
+            print '[RESTART] OS is going to ' + str(command)
+            if command == 'reboot':
+                cmd = "sudo shutdown now -r"
+            elif command == 'shutdown':
+                cmd = "sudo shutdown now -h"
+            else:
+                cmd = "true"
             os.system(cmd)
         else:
             print '[RESTART] Unsupported OS'
