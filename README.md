@@ -14,6 +14,7 @@ apt-get update
 apt-get upgrade
 apt-get install python-pip
 apt-get install python-pygame
+apt-get install libgles2-mesa-dev
 pip install Cython
 pip install kivy (Kivy-Garden is included)
 garden install graph
