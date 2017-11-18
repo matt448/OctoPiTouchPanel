@@ -34,8 +34,21 @@ mtdev_%(name)s = probesysfs,provider=mtdev
 hid_%(name)s = probesysfs,provider=hidinput
 </pre>
 
+## Disable console screen blanking
+Raspbian Jessie has console screen blanking turned on by default. It is set to 600 seconds. To disable this you must edit this file:
+<pre>
+vi /boot/cmdline.txt
+</pre>
+
+After 'console=tty1' add 'consoleblank=0'. Your cmdline.txt should look something like this:
+<pre>
+dwc_otg.lpm_enable=0 console=serial0,115200 console=tty1 consoleblank=0 root=PARTUUID=17e26144-02 rootfstype=ext4 elevator=deadline fsck.repair=yes rootwait
+</pre>
+Note the cmdline.txt file must be a single line of text. After saving this file reboot your Pi.
+
 ## Clone this repo
 <pre>
+sudo su -
 cd /root
 git clone https://github.com/matt448/OctoPiTouchPanel.git
 </pre>
