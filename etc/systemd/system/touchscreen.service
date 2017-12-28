@@ -1,0 +1,13 @@
+[Unit]
+Description=Octoprint Touchscreen Interface
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/OctoPiTouchPanel
+ExecStart=/root/OctoPiTouchPanel/main.py
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

@@ -64,14 +64,22 @@ The important items to edit are in the APISettings section.
 - nicname: Use ifconfig to identify network interface Looks something like eth0 or wlan0
 </pre>
 
-## Starting the app
+
+## Configure system to start touchscreen app on boot
+Older Linux distros use start scripts in /etc/init.d. Newer Linux distros use start scripts in /etc/systemd/system.
+I've included both with this project but since systemd is now the standard I will detail how to set that up.
 <pre>
-cd /root/OctoPiTouchPanel
-python /root/OctoPiTouchPanel/main.py
+cp OctoPiTouchPanel/etc/systemd/system/touchscreen.service /etc/systemd/system
+chmod +x /etc/systemd/system/touchscreen.service
+systemctl enable touchscreen
 </pre>
-or to start the app in the background
+The touchscreen app should now launch when the Pi boots up.
+
+
+## Manually starting and stopping the app
 <pre>
-python /root/OctoPiTouchPanel/main.py &
+systemctl start touchscreen
+systemctl stop touchscreen
 </pre>
 
 # Screenshots
