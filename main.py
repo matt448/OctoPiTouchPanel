@@ -19,7 +19,7 @@ import os
 from math import sin, cos
 import requests
 import json
-import ConfigParser
+import configparser
 import sys
 from subprocess import *
 import pprint
@@ -49,7 +49,7 @@ for i in range(359):  # Replace values with decreasing seconds from 30 to 0
 
 
 # Read settings from the config file
-settings = ConfigParser.ConfigParser()
+settings = configparser.ConfigParser()
 settings.read('octoprint.cfg')
 host = settings.get('APISettings', 'host')
 nicname = settings.get('APISettings', 'nicname')
@@ -73,8 +73,8 @@ commandurl = 'http://' + host + '/api/printer/command'
 headers = {'X-Api-Key': apikey, 'content-type': 'application/json'}
 
 if debug:
-    print "*********** DEBUG ENABLED ************"
-    print headers
+    print("*********** DEBUG ENABLED ************")
+    print(headers)
 
 bed_temp_val = 0.0
 hotend_temp_val = 0.0
@@ -627,18 +627,18 @@ class Panels(TabbedPanel):
         self.ids.bedslider.max = bed_max
         try:
             if debug:
-                print '[GET TEMPS] Trying /printer API request to Octoprint...'
+                print('[GET TEMPS] Trying /printer API request to Octoprint...')
             r = requests.get(printerapiurl, headers=headers, timeout=httptimeout)
             if debug:
-                print '[GET TEMPS] STATUS CODE: ' + str(r.status_code)
+                print('[GET TEMPS] STATUS CODE: ', str(r.status_code))
         except requests.exceptions.RequestException as e:
             r = False
             if debug:
-                print '[GET TEMPS] ERROR: Couldn\'t contact Octoprint /printer API'
-                print e
+                print('[GET TEMPS] ERROR: Couldn\'t contact Octoprint /printer API')
+                print(e)
         if r and r.status_code == 200:
             if debug:
-                print '[GET TEMPS] JSON Data: ' + str(r.json())
+                print('[GET TEMPS] JSON Data: ' + str(r.json()))
         if r and r.status_code == 200 and 'tool0' in r.json()['temperature']:
             printeronline = True
             hotendactual = r.json()['temperature']['tool0']['actual']
@@ -650,11 +650,11 @@ class Panels(TabbedPanel):
             operational = r.json()['state']['flags']['operational']
 
             if debug:
-                print '   BED ACTUAL: ' + str(bedactual)
-                print 'HOTEND ACTUAL: ' + str(hotendactual)
-                print '     PRINTING: ' + str(printing)
-                print '       PAUSED: ' + str(paused)
-                print '  OPERATIONAL: ' + str(operational)
+                print('   BED ACTUAL: ' + str(bedactual))
+                print('HOTEND ACTUAL: ' + str(hotendactual))
+                print('     PRINTING: ' + str(printing))
+                print('       PAUSED: ' + str(paused))
+                print('  OPERATIONAL: ' + str(operational))
 
             # Update tempurature arrays with new data
             hotendactual_list.popleft()
@@ -728,7 +728,7 @@ class Panels(TabbedPanel):
                 self.ids.hotend_target.text = 'OFF'
         else:
             if r:
-                print 'Error. API Status Code: ' + str(r.status_code)  # Print API status code if we have one
+                print('Error. API Status Code: ', str(r.status_code))  # Print API status code if we have one
             # If we can't get any values from Octoprint just fill values with not available.
             self.ids.bed_actual.text = 'N/A'
             self.ids.hotend_actual.text = 'N/A'
@@ -737,22 +737,22 @@ class Panels(TabbedPanel):
 
     def home(self, *args):
         axis = args[0]
-        print 'HOME AXIS: ' + axis
+        print('HOME AXIS: ' + axis)
         if axis == 'xy':
             homedata = {'command': 'home', 'axes': ['x', 'y']}
         else:
             homedata = {'command': 'home', 'axes': ['z']}
         try:
             if debug:
-                print '[HOME ' + axis + '] Trying /API request to Octoprint...'
+                print('[HOME ' + axis + '] Trying /API request to Octoprint...')
             r = requests.post(printheadurl, headers=headers, json=homedata, timeout=httptimeout)
             if debug:
-                print '[HOME ' + axis + '] STATUS CODE: ' + str(r.status_code)
+                print('[HOME ' + axis + '] STATUS CODE: ' + str(r.status_code))
         except requests.exceptions.RequestException as e:
             r = False
             if debug:
-                print 'ERROR: Couldn\'t contact Octoprint /job API'
-                print e
+                print('ERROR: Couldn\'t contact Octoprint /job API')
+                print(e)
 
     def jogaxis(self, *args):
         axis = args[0]
@@ -763,9 +763,9 @@ class Panels(TabbedPanel):
         global jogincrement
         invert_axis = {'x': invert_X, 'y': invert_Y, 'z': invert_Z}
 
-        print 'AXIS: ' + axis
-        print 'DIRECTION: ' + direction
-        print 'INCREMENT: ' + str(jogincrement)
+        print('AXIS: ' + axis)
+        print('DIRECTION: ' + direction)
+        print('INCREMENT: ' + str(jogincrement))
 
         if direction == 'up' or direction == 'forward' or direction == 'left':
             if invert_axis[axis]:
@@ -780,24 +780,24 @@ class Panels(TabbedPanel):
                 inc = jogincrement * -1
 
         jogdata = {'command': 'jog', axis: inc}
-        print 'JOGDATA: ' + str(jogdata)
+        print('JOGDATA: ' + str(jogdata))
         try:
             if debug:
-                print '[JOG ' + axis + ' ' + direction + '] Trying /API request to Octoprint...'
+                print('[JOG ' + axis + ' ' + direction + '] Trying /API request to Octoprint...')
             r = requests.post(printheadurl, headers=headers, json=jogdata, timeout=httptimeout)
             if debug:
-                print 'STATUS CODE: ' + str(r.status_code)
+                print('STATUS CODE: ' + str(r.status_code))
         except requests.exceptions.RequestException as e:
             r = False
             if debug:
-                print 'ERROR: Couldn\'t contact Octoprint /job API'
-                print e
+                print('ERROR: Couldn\'t contact Octoprint /job API')
+                print(e)
 
     def jogincrement(self, *args):
         global jogincrement
         if debug:
-            print '[JOG INCREMENT] Button pressed'
-            print '[JOG INCREMENT] INC: ' + str(args[0])
+            print('[JOG INCREMENT] Button pressed')
+            print('[JOG INCREMENT] INC: ' + str(args[0]))
         jogincrement = args[0]
 
     def connect(self, *args):
@@ -805,86 +805,86 @@ class Panels(TabbedPanel):
                           'save': False, 'autoconnect': False}
         try:
             if debug:
-                print '[CONNECT] Trying /job API request to Octoprint...'
-                print '[CONNECT] ' + connectionurl + str(connectiondata)
+                print('[CONNECT] Trying /job API request to Octoprint...')
+                print('[CONNECT] ' + connectionurl + str(connectiondata))
             r = requests.post(connectionurl, headers=headers, json=connectiondata, timeout=httptimeout)
             if debug:
-                print '[CONNECT] STATUS CODE: ' + str(r.status_code)
-                print '[CONNECT] RESPONSE: ' + r.text
+                print('[CONNECT] STATUS CODE: ' + str(r.status_code))
+                print('[CONNECT] RESPONSE: ' + r.text)
         except requests.exceptions.RequestException as e:
             r = False
             if debug:
-                print '[CONNECT] ERROR: Couldn\'t contact Octoprint /job API'
-                print e
+                print('[CONNECT] ERROR: Couldn\'t contact Octoprint /job API')
+                print(e)
 
     def disconnect(self, *args):
         disconnectdata = {'command': 'disconnect'}
         try:
             if debug:
-                print '[DISCONNECT] Trying /job API request to Octoprint...'
-                print '[DISCONNECT] ' + connectionurl + str(disconnectdata)
+                print('[DISCONNECT] Trying /job API request to Octoprint...')
+                print('[DISCONNECT] ' + connectionurl + str(disconnectdata))
             r = requests.post(connectionurl, headers=headers, json=disconnectdata, timeout=httptimeout)
             if debug:
-                print '[DISCONNECT] STATUS CODE: ' + str(r.status_code)
-                print '[DISCONNECT] RESPONSE: ' + r.text
+                print('[DISCONNECT] STATUS CODE: ' + str(r.status_code))
+                print('[DISCONNECT] RESPONSE: ' + r.text)
         except requests.exceptions.RequestException as e:
             r = False
             if debug:
-                print '[DISCONNECT] ERROR: Couldn\'t contact Octoprint /job API'
-                print e
+                print('[DISCONNECT] ERROR: Couldn\'t contact Octoprint /job API')
+                print(e)
 
     def setbedtarget(self, *args):
         bedsliderval = args[0]
         bedtargetdata = {'command': 'target', 'target': bedsliderval}
         if debug:
-            print '[BED TARGET] New Value: ' + str(bedsliderval) + ' C'
+            print('[BED TARGET] New Value: ' + str(bedsliderval) + ' C')
         try:
             if debug:
-                print '[BED TARGET] Trying /API request to Octoprint...'
+                print('[BED TARGET] Trying /API request to Octoprint...')
             r = requests.post(bedurl, headers=headers, json=bedtargetdata, timeout=httptimeout)
             if debug:
-                print '[BED TARGET] STATUS CODE: ' + str(r.status_code)
+                print ('[BED TARGET] STATUS CODE: ' + str(r.status_code))
         except requests.exceptions.RequestException as e:
-            print '[BED TARGET] ERROR: Couldn\'t contact Octoprint /job API'
-            print e
+            print('[BED TARGET] ERROR: Couldn\'t contact Octoprint /job API')
+            print(e)
             r = False
 
     def sethotendtarget(self, *args):
         hotendsliderval = args[0]
         hotendtargetdata = {'command': 'target', 'targets': {'tool0': hotendsliderval}}
         if debug:
-            print '[HOTEND TARGET] New Value: ' + str(hotendsliderval) + ' C'
+            print('[HOTEND TARGET] New Value: ' + str(hotendsliderval) + ' C')
         try:
             if debug:
-                print '[HOTEND TARGET] Trying /API request to Octoprint...'
+                print('[HOTEND TARGET] Trying /API request to Octoprint...')
             r = requests.post(toolurl, headers=headers, json=hotendtargetdata, timeout=httptimeout)
             if debug:
-                print '[HOTEND TARGET] STATUS CODE: ' + str(r.status_code)
+                print('[HOTEND TARGET] STATUS CODE: ' + str(r.status_code))
         except requests.exceptions.RequestException as e:
             r = False
             if debug:
-                print '[HOTEND TARGET] ERROR: Couldn\'t contact Octoprint /job API'
-                print e
+                print('[HOTEND TARGET] ERROR: Couldn\'t contact Octoprint /job API')
+                print(e)
 
     def extrudefilament(self, *args):
         posneg = args[0]
         extrudeamount = (int(self.ids.extrudeamount.text) * posneg)
         if debug:
-            print '[EXTRUDE FILAMENT] Amount: ' + str(extrudeamount)
+            print('[EXTRUDE FILAMENT] Amount: ' + str(extrudeamount))
         extrudedata = {'command': 'extrude', 'amount': extrudeamount}
         if debug:
-            print '[EXTRUDE FILAMENT] Extruding: ' + str(extrudeamount) + ' mm'
+            print('[EXTRUDE FILAMENT] Extruding: ' + str(extrudeamount) + ' mm')
         try:
             if debug:
-                print '[EXTRUDE FILAMENT] Trying /API request to Octoprint...'
+                print ('[EXTRUDE FILAMENT] Trying /API request to Octoprint...')
             r = requests.post(toolurl, headers=headers, json=extrudedata, timeout=httptimeout)
             if debug:
-                print '[EXTRUDE FILAMENT] STATUS CODE: ' + str(r.status_code)
+                print('[EXTRUDE FILAMENT] STATUS CODE: ' + str(r.status_code))
         except requests.exceptions.RequestException as e:
             r = False
             if debug:
-                print '[EXTRUDE FILAMENT] ERROR: Couldn\'t contact Octoprint /job API'
-                print e
+                print('[EXTRUDE FILAMENT] ERROR: Couldn\'t contact Octoprint /job API')
+                print(e)
 
     def fanspeed(self, *args):
         speed_percent = int(args[0])
@@ -892,8 +892,8 @@ class Panels(TabbedPanel):
         fan_gcode = 'M106 S' + str(speed_pwm)
         fancmd = {"commands": [fan_gcode]}
         if debug:
-            print '[FAN CONTROL] Speed: ' + str(speed_pwm)
-            print '[FAN CONTROL] ' + str(fancmd)
+            print('[FAN CONTROL] Speed: ' + str(speed_pwm))
+            print('[FAN CONTROL] ' + str(fancmd))
         try:
             r = requests.post(commandurl, headers=headers, json=fancmd, timeout=httptimeout)
         except requests.exceptions.RequestException as e:
@@ -904,13 +904,13 @@ class Panels(TabbedPanel):
         jobdata = {'command': jobcommand}
         try:
             if debug:
-                print '[JOB COMMAND] Trying /API request to Octoprint...'
+                print ('[JOB COMMAND] Trying /API request to Octoprint...')
             # Send job request to the job api
             r = requests.post(jobapiurl, headers=headers, json=jobdata, timeout=httptimeout)
             if debug:
-                print '[JOB COMMAND] STATUS CODE: ' + str(r.status_code)
-                print '[JOB COMMAND]     COMMAND: ' + str(jobcommand)
-                print '[JOB COMMAND] BUTTON TEXT: ' + self.ids.pausebutton.text
+                print ('[JOB COMMAND] STATUS CODE: ' + str(r.status_code))
+                print ('[JOB COMMAND]     COMMAND: ' + str(jobcommand))
+                print ('[JOB COMMAND] BUTTON TEXT: ' + self.ids.pausebutton.text)
             # Update pause button text
             if r.status_code == 204 and jobcommand == 'pause' and self.ids.pausebutton.text == 'Pause':
                 self.ids.pausebutton.text = 'Resume'
@@ -920,30 +920,30 @@ class Panels(TabbedPanel):
         except requests.exceptions.RequestException as e:
             r = False
             if debug:
-                print '[JOB COMMAND] ERROR: Couldn\'t contact Octoprint /job API'
-                print e
+                print ('[JOB COMMAND] ERROR: Couldn\'t contact Octoprint /job API')
+                print(e)
 
     def getstats(self, *args):
         try:
             if debug:
-                print '[GET STATS] Trying /job API request to Octoprint...'
+                print ('[GET STATS] Trying /job API request to Octoprint...')
             r = requests.get(jobapiurl, headers=headers, timeout=1)
         except requests.exceptions.RequestException as e:
             r = False
             if debug:
-                print '[GET STATS] ERROR: Couldn\'t contact Octoprint /job API'
-                print e
+                print('[GET STATS] ERROR: Couldn\'t contact Octoprint /job API')
+                print(e)
         if r and r.status_code == 200:
             if debug:
-                print '[GET STATS] JSON Data: ' + str(r.json())
+                print ('[GET STATS] JSON Data: ' + str(r.json()))
             printerstate = r.json()['state']
             jobfilename = r.json()['job']['file']['name']
             jobpercent = r.json()['progress']['completion']
             jobprinttime = r.json()['progress']['printTime']
             jobprinttimeleft = r.json()['progress']['printTimeLeft']
             if debug:
-                print '[GET STATS] Printer state: ' + printerstate
-                print '[GET STATS] Job percent: ' + str(jobpercent) + '%'
+                print ('[GET STATS] Printer state: ' + printerstate)
+                print ('[GET STATS] Job percent: ' + str(jobpercent) + '%')
             if jobfilename is not None:
                 jobfilenamefull = jobfilename
                 jobfilename = jobfilename[:25]  # Shorten filename to 25 characters
@@ -991,7 +991,7 @@ class Panels(TabbedPanel):
 
         else:
             if r:
-                print 'Error. API Status Code: ' + str(r.status_code)  # Print API status code if we have one
+                print ('Error. API Status Code: ' + str(r.status_code))  # Print API status code if we have one
             # If we can't get any values from Octoprint API fill with these values.
             self.ids.jobfilename.text = 'N/A'
             self.ids.printerstate.text = 'Unknown'
@@ -1017,7 +1017,7 @@ class Panels(TabbedPanel):
         command = args[0]
         global platform
         if 'linux' in platform or 'Linux' in platform:
-            print '[RESTART] OS is going to ' + str(command)
+            print ('[RESTART] OS is going to ' + str(command))
             if command == 'reboot':
                 cmd = "sudo shutdown now -r"
             elif command == 'shutdown':
@@ -1026,7 +1026,7 @@ class Panels(TabbedPanel):
                 cmd = "true"
             os.system(cmd)
         else:
-            print '[RESTART] Unsupported OS'
+            print ('[RESTART] Unsupported OS')
 
     def exitapp(self, *args):
         exit()
@@ -1039,15 +1039,15 @@ class Panels(TabbedPanel):
             p = Popen(cmd, shell=True, stdout=PIPE)
             output = p.communicate()[0]
             if debug:
-                print '[RESTART NETWORK]: ' + output
+                print('[RESTART NETWORK]: ' + output)
             cmd = "sudo ifup " + nicname
             p = Popen(cmd, shell=True, stdout=PIPE)
             output = p.communicate()[0]
             if debug:
-                print '[RESTART NETWORK]: ' + output
+                print('[RESTART NETWORK]: ' + output)
         else:
             if debug:
-                print 'Unknown Platform. Not restarting network interface'
+                print('Unknown Platform. Not restarting network interface')
 
     def graphpoints(self, *args):
         hotendactual_plot = SmoothLinePlot(color=[1, 0, 0, 1])
