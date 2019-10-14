@@ -1006,10 +1006,10 @@ class Panels(TabbedPanel):
         global platform
         global nicname  # Network card name from config file
         if 'linux' in platform or 'Linux' in platform:
-            cmd = "ip addr show " + nicname + " | grep inet | awk '{print $2}' | cut -d/ -f1"
+            cmd = "ip addr show " + nicname + " | grep inet | grep -v inet6 | awk '{print $2}' | cut -d/ -f1"
             p = Popen(cmd, shell=True, stdout=PIPE)
             output = p.communicate()[0]
-            self.ids.ipaddr.text = output
+            self.ids.ipaddr.text = output.decode('utf-8')
         else:
             self.ids.ipaddr.text = 'Unknown Platform'
 
