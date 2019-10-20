@@ -11,18 +11,19 @@ def exit_app():
 
 ####################################
 # Ask the OS to restart networking
+# This will restart the nic listed in the config file
 def restart_networking(platform, nicname, debug):
     if 'linux' in platform or 'Linux' in platform:
         cmd = "sudo ifdown " + nicname
         p = Popen(cmd, shell=True, stdout=PIPE)
-        output = p.communicate()[0]
+        cmd_output = p.communicate()[0].decode('utf-8')
         if debug:
             print('[RESTART NETWORK]: ' + output)
         cmd = "sudo ifup " + nicname
         p = Popen(cmd, shell=True, stdout=PIPE)
-        output = p.communicate()[0]
+        cmd_output = p.communicate()[0].decode('utf-8')
         if debug:
-            print('[RESTART NETWORK]: ' + output)
+            print('[RESTART NETWORK]: ' + cmd_output)
     else:
         if debug:
             print('Unknown Platform. Not restarting network interface')
@@ -51,8 +52,8 @@ def get_ip_address(platform, nicname, debug):
     if 'linux' in platform or 'Linux' in platform:
         cmd = "ip addr show " + nicname + " | grep inet | grep -v inet6 | awk '{print $2}' | cut -d/ -f1"
         p = Popen(cmd, shell=True, stdout=PIPE)
-        cmd_output = p.communicate()[0]
-        ip = cmd_output.decode('utf-8')
+        cmd_output = p.communicate()[0].decode('utf-8')
+        ip = cmd_output
     else:
         if debug:
             print('Unknown platform. Can\'t detect IP address')
