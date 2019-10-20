@@ -475,15 +475,11 @@ class Panels(TabbedPanel):
             self.ids.jobprinttimeleft.text = '--:--:--'
 
     def update_ip_addr(self, *args):
-        global platform
-        global nicname  # Network card name from config file
-        if 'linux' in platform or 'Linux' in platform:
-            cmd = "ip addr show " + nicname + " | grep inet | grep -v inet6 | awk '{print $2}' | cut -d/ -f1"
-            p = Popen(cmd, shell=True, stdout=PIPE)
-            output = p.communicate()[0]
-            self.ids.ipaddr.text = output.decode('utf-8')
+        ip_addr = os_utils.get_ip_address(platform, nicname, debug)
+        if ip_addr:
+            self.ids.ip_addr.text = str(ip_addr)
         else:
-            self.ids.ipaddr.text = 'Unknown Platform'
+            self.ids.ip_addr.text = 'Unknown Platform'
 
     def button_restart_os(self, *args):
         command = args[0]

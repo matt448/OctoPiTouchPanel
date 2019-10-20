@@ -1,6 +1,10 @@
 {
     "cSpell.words": [
         "Octoprint",
+        "Popen",
+        "ifdown",
+        "ifup",
+        "inet",
         "nicname"
     ]
 }

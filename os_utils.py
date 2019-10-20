@@ -1,6 +1,8 @@
 ##########################################
 # These are items for the 'OS Utils' tab
-from subprocess import *
+from subprocess import Popen
+from subprocess import PIPE
+from subprocess import os
 
 ###################################
 # Exit the touchscreen application
@@ -40,3 +42,18 @@ def restart_os(platform, command, debug):
         os.system(cmd)
     else:
         print ('[RESTART] ' + str(command) + ' Unsupported OS')
+
+
+#############################################
+# Detect IP address of the OS
+def get_ip_address(platform, nicname, debug):
+    ip = ''
+    if 'linux' in platform or 'Linux' in platform:
+        cmd = "ip addr show " + nicname + " | grep inet | grep -v inet6 | awk '{print $2}' | cut -d/ -f1"
+        p = Popen(cmd, shell=True, stdout=PIPE)
+        cmd_output = p.communicate()[0]
+        ip = cmd_output.decode('utf-8')
+    else:
+        if debug:
+            print('Unknown platform. Can\'t detect IP address')
+    return(ip)
