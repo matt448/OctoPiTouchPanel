@@ -18,7 +18,7 @@ def restart_networking(platform, nicname, debug):
         p = Popen(cmd, shell=True, stdout=PIPE)
         cmd_output = p.communicate()[0].decode('utf-8')
         if debug:
-            print('[RESTART NETWORK]: ' + output)
+            print('[RESTART NETWORK]: ' + cmd_output)
         cmd = "sudo ifup " + nicname
         p = Popen(cmd, shell=True, stdout=PIPE)
         cmd_output = p.communicate()[0].decode('utf-8')
