@@ -24,6 +24,7 @@ import sys
 from subprocess import *
 import pprint
 from collections import deque  # Fast pops from the ends of lists
+import os_utils
 
 # Temperature lists
 hotendactual_list = deque([])
@@ -473,7 +474,7 @@ class Panels(TabbedPanel):
             self.ids.jobprinttime.text = '--:--:--'
             self.ids.jobprinttimeleft.text = '--:--:--'
 
-    def updateipaddr(self, *args):
+    def update_ip_addr(self, *args):
         global platform
         global nicname  # Network card name from config file
         if 'linux' in platform or 'Linux' in platform:
@@ -484,41 +485,15 @@ class Panels(TabbedPanel):
         else:
             self.ids.ipaddr.text = 'Unknown Platform'
 
-    def restartOS(self, *args):
+    def button_restart_os(self, *args):
         command = args[0]
-        global platform
-        if 'linux' in platform or 'Linux' in platform:
-            print ('[RESTART] OS is going to ' + str(command))
-            if command == 'reboot':
-                cmd = "sudo shutdown now -r"
-            elif command == 'shutdown':
-                cmd = "sudo shutdown now -h"
-            else:
-                cmd = "true"
-            os.system(cmd)
-        else:
-            print ('[RESTART] Unsupported OS')
+        os_utils.restart_os(platform, command, debug)
 
-    def exitapp(self, *args):
-        exit()
+    def button_exit_app(self, *args):
+        os_utils.exit_app()
 
-    def restartnetworking(self, *args):
-        global platform
-        global nicname  # Network card name from config file
-        if 'linux' in platform or 'Linux' in platform:
-            cmd = "sudo ifdown " + nicname
-            p = Popen(cmd, shell=True, stdout=PIPE)
-            output = p.communicate()[0]
-            if debug:
-                print('[RESTART NETWORK]: ' + output)
-            cmd = "sudo ifup " + nicname
-            p = Popen(cmd, shell=True, stdout=PIPE)
-            output = p.communicate()[0]
-            if debug:
-                print('[RESTART NETWORK]: ' + output)
-        else:
-            if debug:
-                print('Unknown Platform. Not restarting network interface')
+    def button_restart_networking(self, *args):
+        os_utils.restart_networking(platform, nicname, debug)
 
     def graphpoints(self, *args):
         hotendactual_plot = SmoothLinePlot(color=[1, 0, 0, 1])
@@ -561,8 +536,8 @@ class TabbedPanelApp(App):
 
         Clock.schedule_interval(panels.getstats, 5)  # Update job stats every 5 seconds
 
-        Clock.schedule_once(panels.updateipaddr, 0.5)  # Update IP addr once right away
-        Clock.schedule_interval(panels.updateipaddr, 30)  # Then update IP every 30 seconds
+        Clock.schedule_once(panels.update_ip_addr, 0.5)  # Update IP addr once right away
+        Clock.schedule_interval(panels.update_ip_addr, 30)  # Then update IP every 30 seconds
 
         Clock.schedule_interval(panels.graphpoints, 10)  # Update graphs
         return panels

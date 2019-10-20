@@ -502,25 +502,25 @@
             Button:
                 id: restartOS
                 text: 'Reboot'
-                on_press: root.restartOS('reboot')
+                on_press: root.button_restart_os('reboot')
                 size_hint: .18, .12
                 pos: 10, 95
             Button:
                 id: shutdownOS
                 text: 'Shutdown'
-                on_press: root.restartOS('shutdown')
+                on_press: root.button_restart_os('shutdown')
                 size_hint: .18, .12
                 pos: 10, 30
             Button:
                 id: exitApp
                 text: 'Exit'
-                on_press: root.exitapp()
+                on_press: root.button_exit_app()
                 size_hint: .18, .12
                 pos: 10, 195
             Button:
                 id: restartNetworking
                 text: 'Restart Networking'
-                on_press: root.restartnetworking()
+                on_press: root.button_restart_networking()
                 size_hint: .18, .12
                 pos: 210, 195
 
