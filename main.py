@@ -33,21 +33,23 @@ bedactual_list = deque([])
 bedtarget_list = deque([])
 
 # Initialize Temperature lists
-for i in range(360):
+temperature_list_size = 31
+for i in range(temperature_list_size):
     hotendactual_list.append(0)
     hotendtarget_list.append(0)
     bedactual_list.append(0)
     bedtarget_list.append(0)
 # Fill timestamp list with 1000x time vals in seconds
 graphtime_list = []
-for i in range(360):  # Fill the list with zeros
+for i in range(temperature_list_size):  # Fill the list with zeros
     graphtime_list.append(0)
 
-graphtime_list[0] = 30000
-for i in range(359):  # Replace values with decreasing seconds from 30 to 0
-    val = int(graphtime_list[i] - 83)
+graphtime_list[0] = 30000 # Minutes * 10000
+for i in range(temperature_list_size - 1):  # Replace values with decreasing seconds from 30 to 0
+    val = int(graphtime_list[i] - 1000)
     graphtime_list[i + 1] = (val)
 
+print(graphtime_list)
 
 # Read settings from the config file
 settings = configparser.ConfigParser()
@@ -187,7 +189,7 @@ class Panels(TabbedPanel):
             self.ids.hotendpb.value = (hotendactual / self.ids.hotendslider.max) * 100
             self.ids.bedpb.value = (bedactual / self.ids.bedslider.max) * 100
 
-            # Update tempurature values with new data
+            # Update temperature values with new data
             self.ids.bed_actual.text = str(bedactual) + u"\u00b0" + ' C'
             self.ids.hotend_actual.text = str(hotendactual) + u"\u00b0" + ' C'
             if bedtarget > 0:
@@ -497,20 +499,28 @@ class Panels(TabbedPanel):
         bedactual_plot = SmoothLinePlot(color=[0, 0, 1, 1])
         bedtarget_plot = MeshLinePlot(color=[0, 0, 1, .75])
         # Build list of plot points tuples from temp and time lists
-        # FIXME - Need to reduce the number of points on the graph. 360 is overkill
+        # TODO - Populate the temperature lists here from the global values instead
+        #       of in the gettemps function
         hotendactual_points_list = []
         hotendtarget_points_list = []
         bedactual_points_list = []
         bedtarget_points_list = []
-        for i in range(360):
-            hotendactual_points_list.append((graphtime_list[i] / 1000.0 * -1, hotendactual_list[i]))
-            hotendtarget_points_list.append((graphtime_list[i] / 1000.0 * -1, hotendtarget_list[i]))
-            bedactual_points_list.append((graphtime_list[i] / 1000.0 * -1, bedactual_list[i]))
-            bedtarget_points_list.append((graphtime_list[i] / 1000.0 * -1, bedtarget_list[i]))
+        for i in range(31):
+            hotendactual_points_list.append(( int(graphtime_list[i] / 1000.0 * -1), int(hotendactual_list[i])))
+            hotendtarget_points_list.append(( int(graphtime_list[i] / 1000.0 * -1),  int(hotendtarget_list[i])))
+            bedactual_points_list.append(( int(graphtime_list[i] / 1000.0 * -1),  int(bedactual_list[i])))
+            bedtarget_points_list.append(( int(graphtime_list[i] / 1000.0 * -1),  int(bedtarget_list[i])))
+        print('--------------------------------------------------------------------------')
+        print(hotendactual_points_list)
 
         # Remove all old plots from the graph before drawing new ones
-        for plot in self.my_graph.plots:
-            self.my_graph.remove_plot(plot)
+        print('BEFORE - COUNT:', len(self.my_graph.plots), '\n')
+        while(len(self.my_graph.plots) != 0):
+            # TODO - add a counter so we can abort after a certain number of tries.
+            print('Removing plot', self.my_graph.plots[0])
+            self.my_graph.remove_plot(self.my_graph.plots[0])
+
+        print('AFTER - COUNT:', len(self.my_graph.plots), '\n')
 
         # Draw the new graphs
         hotendactual_plot.points = hotendactual_points_list
