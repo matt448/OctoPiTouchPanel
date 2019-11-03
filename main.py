@@ -32,8 +32,14 @@ hotendtarget_list = deque([])
 bedactual_list = deque([])
 bedtarget_list = deque([])
 
+g_hotend_actual = 0
+g_hotend_target = 0
+g_bed_actual = 0
+g_bed_target = 0
+
 # Initialize Temperature lists
-temperature_list_size = 31
+temperature_list_size = 201
+temperature_graph_time_max = 30000 # Minutes * 10000
 for i in range(temperature_list_size):
     hotendactual_list.append(0)
     hotendtarget_list.append(0)
@@ -44,12 +50,11 @@ graphtime_list = []
 for i in range(temperature_list_size):  # Fill the list with zeros
     graphtime_list.append(0)
 
-graphtime_list[0] = 30000 # Minutes * 10000
+graphtime_list[0] = temperature_graph_time_max
 for i in range(temperature_list_size - 1):  # Replace values with decreasing seconds from 30 to 0
-    val = int(graphtime_list[i] - 1000)
+    val = graphtime_list[i] - (temperature_graph_time_max / (temperature_list_size - 1))
     graphtime_list[i + 1] = (val)
 
-print(graphtime_list)
 
 # Read settings from the config file
 settings = configparser.ConfigParser()
@@ -97,6 +102,10 @@ class Panels(TabbedPanel):
     global hotend_max
 
     def gettemps(self, *args):
+        global g_hotend_actual
+        global g_hotend_target
+        global g_bed_actual
+        global g_bed_target
         self.ids.hotendslider.max = hotend_max
         self.ids.bedslider.max = bed_max
         try:
@@ -115,54 +124,44 @@ class Panels(TabbedPanel):
                 print('[GET TEMPS] JSON Data: ' + str(r.json()))
         if r and r.status_code == 200 and 'tool0' in r.json()['temperature']:
             printeronline = True
-            hotendactual = r.json()['temperature']['tool0']['actual']
-            hotendtarget = r.json()['temperature']['tool0']['target']
-            bedactual = r.json()['temperature']['bed']['actual']
-            bedtarget = r.json()['temperature']['bed']['target']
+            g_hotend_actual = int(r.json()['temperature']['tool0']['actual'])
+            g_hotend_target = int(r.json()['temperature']['tool0']['target'])
+            g_bed_actual = int(r.json()['temperature']['bed']['actual'])
+            g_bed_target = int(r.json()['temperature']['bed']['target'])
             printing = r.json()['state']['flags']['printing']
             paused = r.json()['state']['flags']['paused']
             operational = r.json()['state']['flags']['operational']
 
             if debug:
-                print('   BED ACTUAL: ' + str(bedactual))
-                print('HOTEND ACTUAL: ' + str(hotendactual))
+                print('   BED ACTUAL: ' + str(g_bed_actual))
+                print('HOTEND ACTUAL: ' + str(g_hotend_actual))
                 print('     PRINTING: ' + str(printing))
                 print('       PAUSED: ' + str(paused))
                 print('  OPERATIONAL: ' + str(operational))
 
-            # Update temperature arrays with new data
-            hotendactual_list.popleft()
-            hotendactual_list.append(hotendactual)
-            hotendtarget_list.popleft()
-            hotendtarget_list.append(hotendtarget)
-            bedactual_list.popleft()
-            bedactual_list.append(bedactual)
-            bedtarget_list.popleft()
-            bedtarget_list.append(bedtarget)
-
             # Update text color on Temps tab if values are above 40C
-            if bedactual > 40:
+            if g_bed_actual > 40:
                 self.ids.tab3_bed_actual.color = [1, 0, 0, 1]
             else:
                 self.ids.tab3_bed_actual.color = [1, 1, 1, 1]
 
-            if bedtarget > 40:
+            if g_bed_target > 40:
                 self.ids.tab3_bed_target.color = [1, 0, 0, 1]
             else:
                 self.ids.tab3_bed_target.color = [1, 1, 1, 1]
 
-            if hotendactual > 40:
+            if g_hotend_actual > 40:
                 self.ids.tab3_hotend_actual.color = [1, 0, 0, 1]
             else:
                 self.ids.tab3_hotend_actual.color = [1, 1, 1, 1]
 
-            if hotendtarget > 40:
+            if g_hotend_target > 40:
                 self.ids.tab3_hotend_target.color = [1, 0, 0, 1]
             else:
                 self.ids.tab3_hotend_target.color = [1, 1, 1, 1]
 
             # Enable/Disable extruder buttons
-            if hotendactual < 130 or printing or paused:
+            if g_hotend_actual < 130 or printing or paused:
                 self.ids.extrude.disabled = True
                 self.ids.retract.disabled = True
             else:
@@ -186,18 +185,18 @@ class Panels(TabbedPanel):
                 self.ids.pausebutton.disabled = True
 
             # Set position of slider pointer
-            self.ids.hotendpb.value = (hotendactual / self.ids.hotendslider.max) * 100
-            self.ids.bedpb.value = (bedactual / self.ids.bedslider.max) * 100
+            self.ids.hotendpb.value = (g_hotend_actual / self.ids.hotendslider.max) * 100
+            self.ids.bedpb.value = (g_bed_actual / self.ids.bedslider.max) * 100
 
             # Update temperature values with new data
-            self.ids.bed_actual.text = str(bedactual) + u"\u00b0" + ' C'
-            self.ids.hotend_actual.text = str(hotendactual) + u"\u00b0" + ' C'
-            if bedtarget > 0:
-                self.ids.bed_target.text = str(bedtarget) + u"\u00b0" + ' C'
+            self.ids.bed_actual.text = str(g_bed_actual) + u"\u00b0" + ' C'
+            self.ids.hotend_actual.text = str(g_hotend_actual) + u"\u00b0" + ' C'
+            if g_bed_target > 0:
+                self.ids.bed_target.text = str(g_bed_target) + u"\u00b0" + ' C'
             else:
                 self.ids.bed_target.text = 'OFF'
-            if hotendtarget > 0:
-                self.ids.hotend_target.text = str(hotendtarget) + u"\u00b0" + ' C'
+            if g_hotend_target > 0:
+                self.ids.hotend_target.text = str(g_hotend_target) + u"\u00b0" + ' C'
             else:
                 self.ids.hotend_target.text = 'OFF'
         else:
@@ -494,33 +493,40 @@ class Panels(TabbedPanel):
         os_utils.restart_networking(platform, nicname, debug)
 
     def graphpoints(self, *args):
+        global g_hotend_actual
+        global g_hotend_target
+        global g_bed_actual
+        global g_bed_target
         hotendactual_plot = SmoothLinePlot(color=[1, 0, 0, 1])
         hotendtarget_plot = MeshLinePlot(color=[1, 0, 0, .75])
         bedactual_plot = SmoothLinePlot(color=[0, 0, 1, 1])
         bedtarget_plot = MeshLinePlot(color=[0, 0, 1, .75])
+
+        # Update temperature graph arrays with new data
+        hotendactual_list.popleft()
+        hotendactual_list.append(g_hotend_actual)
+        hotendtarget_list.popleft()
+        hotendtarget_list.append(g_hotend_target)
+        bedactual_list.popleft()
+        bedactual_list.append(g_bed_actual)
+        bedtarget_list.popleft()
+        bedtarget_list.append(g_bed_target)
+
         # Build list of plot points tuples from temp and time lists
-        # TODO - Populate the temperature lists here from the global values instead
-        #       of in the gettemps function
         hotendactual_points_list = []
         hotendtarget_points_list = []
         bedactual_points_list = []
         bedtarget_points_list = []
-        for i in range(31):
-            hotendactual_points_list.append(( int(graphtime_list[i] / 1000.0 * -1), int(hotendactual_list[i])))
-            hotendtarget_points_list.append(( int(graphtime_list[i] / 1000.0 * -1),  int(hotendtarget_list[i])))
-            bedactual_points_list.append(( int(graphtime_list[i] / 1000.0 * -1),  int(bedactual_list[i])))
-            bedtarget_points_list.append(( int(graphtime_list[i] / 1000.0 * -1),  int(bedtarget_list[i])))
-        print('--------------------------------------------------------------------------')
-        print(hotendactual_points_list)
+        for i in range(temperature_list_size):
+            hotendactual_points_list.append((graphtime_list[i] / 1000.0 * -1, int(hotendactual_list[i])))
+            hotendtarget_points_list.append((graphtime_list[i] / 1000.0 * -1,  int(hotendtarget_list[i])))
+            bedactual_points_list.append((graphtime_list[i] / 1000.0 * -1,  int(bedactual_list[i])))
+            bedtarget_points_list.append((graphtime_list[i] / 1000.0 * -1,  int(bedtarget_list[i])))
 
         # Remove all old plots from the graph before drawing new ones
-        print('BEFORE - COUNT:', len(self.my_graph.plots), '\n')
         while(len(self.my_graph.plots) != 0):
             # TODO - add a counter so we can abort after a certain number of tries.
-            print('Removing plot', self.my_graph.plots[0])
             self.my_graph.remove_plot(self.my_graph.plots[0])
-
-        print('AFTER - COUNT:', len(self.my_graph.plots), '\n')
 
         # Draw the new graphs
         hotendactual_plot.points = hotendactual_points_list
@@ -545,7 +551,10 @@ class TabbedPanelApp(App):
         Clock.schedule_once(panels.update_ip_addr, 0.5)  # Update IP addr once right away
         Clock.schedule_interval(panels.update_ip_addr, 30)  # Then update IP every 30 seconds
 
-        Clock.schedule_interval(panels.graphpoints, 10)  # Update graphs
+        Clock.schedule_once(panels.graphpoints, 1)  # Update graphs right away at startup
+        graph_interval = ((temperature_graph_time_max / 1000) /(temperature_list_size - 1)) * 60
+        print('Graph update interval:', graph_interval, ' seconds')
+        Clock.schedule_interval(panels.graphpoints, graph_interval)  # Update graphs every 10 seconds
         return panels
 
 
