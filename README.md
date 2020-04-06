@@ -5,7 +5,7 @@ The layout is designed for the official Raspberry Pi Foundation 7" touchscreen. 
 
 # Installation
 Big thanks to Tim Vaillemans for documenting this installation process.
-## Install prerequisites
+## Installation for python2
 <pre>
 Install OctoPi (https://octopi.octoprint.org/)
 ssh to your Octoprint server
@@ -23,6 +23,24 @@ pip install -U Cython==0.27.3
 pip install git+https://github.com/kivy/kivy.git@master
 pip install kivy-garden
 garden install graph
+</pre>
+
+## Installation for python3
+<pre>
+Install OctoPi 0.16 or higher (https://octopi.octoprint.org/)
+ssh to your Octoprint server
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install python3 python3-pip python3-dev python3-setuptools
+sudo apt-get install libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
+   pkg-config libgl1-mesa-dev libgles2-mesa-dev git-core \
+   gstreamer1.0-plugins-{bad,base,good,ugly} libgstreamer1.0-dev \
+   gstreamer1.0-{omx,alsa}  libmtdev-dev xclip
+
+python3 -m pip install --upgrade --user pip wheel setuptools
+python3 -m pip install --upgrade --user Cython==0.29.10 pillow PySDL2
+python3 -m pip install --user git+https://github.com/kivy/kivy.git@master
+~/.local/bin/garden install --upgrade graph
 </pre>
 
 ## Configure kivy to use the touchscreen input
@@ -48,8 +66,7 @@ Note the cmdline.txt file must be a single line of text. After saving this file 
 
 ## Clone this repo
 <pre>
-sudo su -
-cd /root
+cd ~
 git clone https://github.com/matt448/OctoPiTouchPanel.git
 </pre>
 
@@ -69,17 +86,17 @@ The important items to edit are in the APISettings section.
 Older Linux distros use start scripts in /etc/init.d. Newer Linux distros use start scripts in /etc/systemd/system.
 I've included both with this project but since systemd is now the standard I will detail how to set that up.
 <pre>
-cp OctoPiTouchPanel/etc/systemd/system/touchscreen.service /etc/systemd/system
-chmod +x /etc/systemd/system/touchscreen.service
-systemctl enable touchscreen
+sudo cp OctoPiTouchPanel/etc/systemd/system/touchscreen.service /etc/systemd/system
+sudo chmod +x /etc/systemd/system/touchscreen.service
+sudo systemctl enable touchscreen
 </pre>
 The touchscreen app should now launch when the Pi boots up.
 
 
 ## Manually starting and stopping the app
 <pre>
-systemctl start touchscreen
-systemctl stop touchscreen
+sudo systemctl start touchscreen
+sudo systemctl stop touchscreen
 </pre>
 
 # Screenshots

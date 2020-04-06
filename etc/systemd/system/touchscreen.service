@@ -4,9 +4,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=root
-WorkingDirectory=/root/OctoPiTouchPanel
-ExecStart=/root/OctoPiTouchPanel/main.py
+User=pi
+WorkingDirectory=/home/pi/OctoPiTouchPanel
+ExecStart=/usr/bin/python3 /home/pi/OctoPiTouchPanel/main.py
 Restart=on-abort
 
 [Install]
